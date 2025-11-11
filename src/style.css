@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Cal+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* RTL Support */
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+  
+  html[dir="ltr"] {
+    direction: ltr;
+  }
+  
+  body {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  /* Custom dark mode transitions */
+  * {
+    @apply transition-colors duration-200;
+  }
+}
+
+@layer components {
+  /* Glass morphism effects */
+  .chapa-glass {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20;
+  }
+  
+  .chapa-glass-dark {
+    @apply bg-gray-900/10 backdrop-blur-xl border border-gray-700/20;
+  }
+  
+  .chapa-glass-card {
+    @apply chapa-glass rounded-3xl shadow-2xl shadow-purple-500/10;
+  }
+  
+  .chapa-glass-card-dark {
+    @apply chapa-glass-dark rounded-3xl shadow-2xl shadow-purple-500/5;
+  }
+  
+  /* Buttons */
+  .btn-primary {
+    @apply bg-chapa-purple-600 hover:bg-chapa-purple-700 text-white font-poppins font-semibold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40;
+  }
+  
+  .btn-secondary {
+    @apply bg-white/80 hover:bg-white text-chapa-purple-700 dark:bg-gray-800/80 dark:hover:bg-gray-800 dark:text-chapa-purple-200 font-poppins font-medium py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 backdrop-blur-xl border border-white/40 dark:border-gray-600/40 shadow-lg shadow-black/5;
+  }
+  
+  .btn-accent {
+    @apply bg-chapa-orange-500 hover:bg-chapa-orange-600 text-white font-poppins font-semibold py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40;
+  }
+  
+  .btn-ghost {
+    @apply text-chapa-purple-600 hover:text-chapa-purple-700 dark:text-chapa-purple-400 dark:hover:text-chapa-purple-300 font-poppins font-medium py-4 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 hover:bg-purple-50 dark:hover:bg-purple-900/20;
+  }
+  
+  /* Inputs */
+  .input-modern {
+    @apply w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-white focus:ring-2 focus:ring-chapa-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-300 placeholder-gray-500 dark:placeholder-gray-400;
+  }
+  
+  /* Cards & Hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer;
+  }
+  
+  /* Text gradients */
+  .text-gradient-purple {
+    @apply bg-gradient-to-r from-chapa-purple-600 to-chapa-purple-800 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-orange {
+    @apply bg-gradient-to-r from-chapa-orange-500 to-chapa-orange-700 bg-clip-text text-transparent;
+  }
+  
+  .bg-gradient-chapa {
+    @apply bg-gradient-to-br from-chapa-purple-600 via-chapa-purple-700 to-chapa-purple-800;
+  }
+  
+  /* RTL specific utilities */
+  .rtl\:flip {
+    transform: scaleX(-1);
+  }
+  
+  /* Signature canvas */
+  .signature-pad {
+    @apply border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm;
+  }
+}
+
+/* Smooth scrolling for the whole app */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-chapa-purple-500 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-chapa-purple-600;
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+}
+
+.dark .shimmer {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200px 100%;
+}
+
+/* Secretary Bird inspired animations */
+@keyframes bird-nod {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-5deg); }
+}
+
+@keyframes contract-stamp {
+  0% { transform: scale(0.8); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.bird-nod {
+  animation: bird-nod 2s ease-in-out infinite;
+}
+
+.contract-stamp {
+  animation: contract-stamp 0.6s ease-out;
+}
+
+/* Custom focus styles */
+button:focus-visible,
+a:focus-visible {
+  @apply outline-2 outline-offset-2 outline-chapa-purple-500;
+}
+
+/* Print styles for contracts */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-contract {
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* RTL text alignment utilities */
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+[dir="rtl"] .ml-auto {
+  margin-left: unset;
+  margin-right: auto;
+}
+
+[dir="rtl"] .mr-auto {
+  margin-right: unset;
+  margin-left: auto;
+}
