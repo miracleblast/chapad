@@ -218,7 +218,6 @@
 
       <!-- Step 2: Contract Details -->
       <div v-if="currentStep === 2" class="space-y-6">
-        <!-- Your existing Step 2 content here -->
         <div class="text-center py-8">
           <Icon icon="material-symbols:check-circle" class="text-4xl text-green-500 mb-3" />
           <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 font-poppins">
@@ -305,20 +304,23 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useContractStore } from '@/stores/contracts'
 import { TemplateEngine } from '@/utils/templates'
 
 const router = useRouter()
 const route = useRoute()
+const contractStore = useContractStore()
 
 // Step management
 const currentStep = ref(1)
 const totalSteps = 3
 const showErrors = ref(false)
 
-// Contract data
+// Contract data - FIXED: Use proper structure that matches your Contract interface
 const contractData = ref({
+  id: '',
   title: '',
   slug: '',
   type: '',
@@ -333,18 +335,12 @@ const contractData = ref({
   },
   terms: '',
   clauses: [] as string[],
-  // Dynamic fields based on contract type
-  debt: {
-    amount: '',
-    currency: 'NGN',
-    interestRate: '',
-    repaymentMonths: ''
-  },
-  sales: {
-    description: '',
-    price: '',
-    currency: 'NGN',
-    deliveryDate: ''
+  status: 'draft' as 'draft' | 'active' | 'completed' | 'cancelled',
+  createdAt: '',
+  updatedAt: '',
+  signatures: {
+    firstParty: undefined as { signature: string; signedAt: string } | undefined,
+    secondParty: undefined as { signature: string; signedAt: string } | undefined
   }
 })
 
@@ -381,13 +377,14 @@ const contractTypes = {
   debt: { id: 'debt', name: 'Debt Agreement', icon: 'material-symbols:money' },
   sales: { id: 'sales', name: 'Sales Agreement', icon: 'material-symbols:shopping-cart' },
   service: { id: 'service', name: 'Service Contract', icon: 'material-symbols:design-services' },
-  partnership: { id: 'partnership', name: 'Partnership Agreement', icon: 'material-symbols:handshake' }
+  partnership: { id: 'partnership', name: 'Partnership Agreement', icon: 'material-symbols:handshake' },
+  custom: { id: 'custom', name: 'Custom Contract', icon: 'material-symbols:edit-document' }
 }
 
 const currentContractType = computed(() => {
   const type = route.query.type as string
   console.log('Route query type:', type)
-  return contractTypes[type as keyof typeof contractTypes] || null
+  return contractTypes[type as keyof typeof contractTypes] || contractTypes.custom
 })
 
 // Validation - FIXED
@@ -400,7 +397,14 @@ const isStep1Valid = computed(() => {
     contractData.value.jurisdiction.secondCountry &&
     contractData.value.jurisdiction.currency
   )
-  console.log('Step 1 validation:', valid)
+  console.log('Step 1 validation:', valid, {
+    title: contractData.value.title?.trim(),
+    firstParty: contractData.value.parties.firstParty.name?.trim(),
+    secondParty: contractData.value.parties.secondParty.name?.trim(),
+    firstCountry: contractData.value.jurisdiction.firstCountry,
+    secondCountry: contractData.value.jurisdiction.secondCountry,
+    currency: contractData.value.jurisdiction.currency
+  })
   return valid
 })
 
@@ -415,6 +419,8 @@ const validateStep1 = () => {
   showErrors.value = true
   if (isStep1Valid.value) {
     console.log('✅ Step 1 is valid! You can proceed.')
+    // Auto-proceed to step 2 if valid
+    nextStep()
   } else {
     console.log('❌ Step 1 validation failed')
   }
@@ -424,16 +430,19 @@ const validateStep3 = () => {
   showErrors.value = true
   if (isStep3Valid.value) {
     console.log('✅ Terms are valid! You can proceed.')
+    // Auto-proceed to create contract if valid
+    nextStep()
   } else {
     console.log('❌ Terms validation failed')
   }
 }
 
-// Navigation
+// Navigation - FIXED
 const goBack = () => {
   if (currentStep.value > 1) {
     currentStep.value--
     showErrors.value = false
+    console.log('🔙 Going back to step:', currentStep.value)
   } else {
     router.push('/select-type')
   }
@@ -471,6 +480,7 @@ const previousStep = () => {
     currentStep.value--
     showErrors.value = false
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    console.log('🔙 Going back to step:', currentStep.value)
   }
 }
 
@@ -490,7 +500,7 @@ const getNextButtonText = () => {
   }
 }
 
-// Other methods (autoGenerateSlug, addClause, autoFillTemplate, saveDraft, createContract) remain the same
+// Other methods
 const autoGenerateSlug = () => {
   if (contractData.value.title) {
     contractData.value.slug = contractData.value.title
@@ -520,14 +530,38 @@ const saveDraft = () => {
   alert('Draft saved successfully!')
 }
 
-const createContract = () => {
+const createContract = async () => {
   console.log('Creating contract:', contractData.value)
-  router.push('/signature')
+  
+  try {
+    // Set creation date
+    contractData.value.createdAt = new Date().toISOString()
+    contractData.value.updatedAt = new Date().toISOString()
+    
+    // Create contract using the store
+    const newContract = await contractStore.createContract(contractData.value)
+    console.log('Contract created successfully:', newContract)
+    
+    // Navigate to signature page with the new contract ID
+    router.push({
+      path: '/signature',
+      query: { contractId: newContract.id }
+    })
+  } catch (error) {
+    console.error('Failed to create contract:', error)
+    alert('Failed to create contract. Please try again.')
+  }
 }
+
+// Watch for step changes to debug
+watch(currentStep, (newStep) => {
+  console.log('🔍 Step changed to:', newStep)
+})
 
 onMounted(() => {
   console.log('ContractBuilder mounted')
   
+  // Set contract type from route
   if (route.query.type) {
     contractData.value.type = route.query.type as string
     console.log('Set contract type to:', contractData.value.type)
@@ -542,7 +576,8 @@ onMounted(() => {
         debt: 'Debt Agreement',
         sales: 'Sales Agreement',
         service: 'Service Contract',
-        partnership: 'Partnership Agreement'
+        partnership: 'Partnership Agreement',
+        custom: 'Custom Contract'
       }
       contractData.value.title = `${typeNames[route.query.type as string] || route.query.type} - ${new Date().toLocaleDateString()}`
     }
@@ -582,7 +617,8 @@ const loadSpecificTemplate = (templateId: string) => {
       debt: 'Debt Agreement',
       sales: 'Sales Agreement', 
       service: 'Service Contract',
-      partnership: 'Partnership Agreement'
+      partnership: 'Partnership Agreement',
+      custom: 'Custom Contract'
     }
     contractData.value.title = `${typeNames[contractData.value.type] || contractData.value.type} Template`
     contractData.value.terms = `This is a ${contractData.value.type} agreement template. Fill in the details below.`
