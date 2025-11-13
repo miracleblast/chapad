@@ -1,5 +1,5 @@
 <template>
- <div class="min-h-screen p-4 bg-chapa-sand-50 dark:bg-gray-900 pb-40"> <!-- Added pb-40 for bottom spacing -->
+  <div class="min-h-screen p-4 bg-chapa-sand-50 dark:bg-gray-900">
     <!-- Header -->
     <div class="text-center mb-6">
       <div class="bird-nod mb-3">
@@ -35,7 +35,7 @@
       </button>
 
       <!-- Sales Agreement -->
-        <button 
+      <button 
         @click="selectContractType('sales')"
         class="chapa-glass-card p-4 text-center card-hover"
       >
@@ -131,7 +131,7 @@
       </button>
 
       <!-- Custom Contract -->
-           <button 
+      <button 
         @click="selectContractType('custom')"
         class="chapa-glass-card p-4 text-center card-hover border-2 border-dashed border-gray-300 dark:border-gray-600"
       >
@@ -147,8 +147,8 @@
       </button>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="chapa-glass-card p-4 mb-6">
+    <!-- Quick Stats - Now visible above buttons -->
+    <div class="chapa-glass-card p-4 mb-24"> <!-- Increased bottom margin to account for buttons -->
       <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
         Popular in Your Region
       </h3>
@@ -168,24 +168,24 @@
       </div>
     </div>
 
-    <!-- Bottom Action -->
-    <!-- Bottom Action - FIXED LOGIC -->
-    <div class="fixed bottom-20 left-4 right-4 space-y-3 bg-chapa-sand-50 dark:bg-gray-900 pt-4 pb-6"> <!-- Added background and padding -->
-      <button 
-        @click="createFromScratch"
-        class="w-full btn-primary flex items-center justify-center space-x-2 py-3"
-      >
-        <Icon icon="material-symbols:edit-document" class="text-lg" />
-        <span class="font-poppins font-medium">Create Empty Contract</span>
-      </button>
-      
-      <button 
-        @click="browseAllTemplates"
-        class="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
-      >
-        <Icon icon="material-symbols:library-books" class="text-lg" />
-        <span class="font-poppins font-medium">Browse All Templates</span>
-      </button>
+    <!-- Bottom Action - COMPACT & RESPONSIVE -->
+    <!-- Alternative: Sticky buttons (remove the fixed div and replace with this) -->
+<div class="sticky bottom-4 mt-8 space-y-2 z-30">
+  <button 
+    @click="createFromScratch"
+    class="w-full btn-primary flex items-center justify-center space-x-2 py-2 text-sm"
+  >
+    <Icon icon="material-symbols:edit-document" class="text-base" />
+    <span class="font-poppins font-medium">Create Empty Contract</span>
+  </button>
+  
+  <button 
+    @click="browseAllTemplates"
+    class="w-full btn-secondary flex items-center justify-center space-x-2 py-2 text-sm"
+  >
+    <Icon icon="material-symbols:library-books" class="text-base" />
+    <span class="font-poppins font-medium">Browse All Templates</span>
+  </button>
 </div>
   </div>
 </template>
@@ -262,11 +262,23 @@ const contractTypes = [
 // When user selects a specific type
 const selectContractType = (typeId: string) => {
   console.log('Selected contract type:', typeId)
-  // Navigate to templates filtered by this type
-  router.push({
-    path: '/templates',
-    query: { type: typeId }
-  })
+  
+  if (typeId === 'custom') {
+    // If custom, go directly to builder with empty template
+    router.push({
+      path: '/builder',
+      query: { 
+        type: 'custom', 
+        fromScratch: 'true' 
+      }
+    })
+  } else {
+    // For specific types, go to templates filtered by type
+    router.push({
+      path: '/templates',
+      query: { type: typeId }
+    })
+  }
 }
 
 // Bottom button: Create from scratch - GO TO BUILDER WITH EMPTY TEMPLATE
@@ -290,7 +302,7 @@ const browseAllTemplates = () => {
 
 <style scoped>
 /* Mobile-optimized touch targets */
-button {
+.grid button {
   min-height: 100px;
 }
 
@@ -306,8 +318,30 @@ button {
   }
 }
 
-/* Make bottom buttons look like they're part of the page */
-.fixed {
-  background: inherit;
+/* Make bottom buttons more compact on mobile */
+@media (max-width: 768px) {
+  .fixed {
+    bottom: 2rem;
+  }
+  
+  .fixed button {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .fixed {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+  }
+  
+  .fixed button {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
 }
 </style>
