@@ -26,6 +26,10 @@
 
     <!-- Progress Bar -->
     <div class="bg-white dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+        <span>Step {{ currentStep }}</span>
+        <span>{{ Math.round((currentStep / totalSteps) * 100) }}% Complete</span>
+      </div>
       <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
         <div 
           class="bg-chapa-purple-500 h-2 rounded-full transition-all duration-500"
@@ -35,19 +39,21 @@
     </div>
 
     <!-- Main Form Content -->
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4 py-6 pb-24"> <!-- Added padding for footer -->
       <!-- Step 1: Contract Basics -->
       <div v-if="currentStep === 1" class="space-y-6">
         <!-- Contract Title -->
         <div class="chapa-glass-card p-5">
           <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
             Contract Title *
+            <span v-if="!contractData.title?.trim()" class="text-red-500 text-xs ml-1">(Required)</span>
           </label>
           <input 
             v-model="contractData.title"
             type="text" 
             placeholder="e.g., Sales Agreement with ABC Company"
             class="input-modern w-full"
+            :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.title?.trim() }"
             @input="autoGenerateSlug"
           >
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
@@ -66,24 +72,28 @@
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
                 Your Company/Name *
+                <span v-if="showErrors && !contractData.parties.firstParty.name?.trim()" class="text-red-500 text-xs ml-1">(Required)</span>
               </label>
               <input 
                 v-model="contractData.parties.firstParty.name"
                 type="text" 
                 placeholder="Company name or your full name"
                 class="input-modern w-full"
+                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.parties.firstParty.name?.trim() }"
               >
             </div>
 
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
                 Second Party *
+                <span v-if="showErrors && !contractData.parties.secondParty.name?.trim()" class="text-red-500 text-xs ml-1">(Required)</span>
               </label>
               <input 
                 v-model="contractData.parties.secondParty.name"
                 type="text" 
                 placeholder="Other party's name or company"
                 class="input-modern w-full"
+                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.parties.secondParty.name?.trim() }"
               >
             </div>
           </div>
@@ -100,10 +110,12 @@
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
                 Your Country *
+                <span v-if="showErrors && !contractData.jurisdiction.firstCountry" class="text-red-500 text-xs ml-1">(Required)</span>
               </label>
               <select 
                 v-model="contractData.jurisdiction.firstCountry"
                 class="input-modern w-full"
+                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.firstCountry }"
               >
                 <option value="">Select country</option>
                 <option 
@@ -128,10 +140,12 @@
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
                 Their Country *
+                <span v-if="showErrors && !contractData.jurisdiction.secondCountry" class="text-red-500 text-xs ml-1">(Required)</span>
               </label>
               <select 
                 v-model="contractData.jurisdiction.secondCountry"
                 class="input-modern w-full"
+                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.secondCountry }"
               >
                 <option value="">Select country</option>
                 <option 
@@ -157,10 +171,12 @@
           <div class="mt-4">
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
               Contract Currency *
+              <span v-if="showErrors && !contractData.jurisdiction.currency" class="text-red-500 text-xs ml-1">(Required)</span>
             </label>
             <select 
               v-model="contractData.jurisdiction.currency"
               class="input-modern w-full"
+              :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.currency }"
             >
               <option value="">Select currency</option>
               <option 
@@ -173,19 +189,146 @@
             </select>
           </div>
         </div>
+
+        <!-- Validation Summary -->
+        <div v-if="showErrors && !isStep1Valid" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <Icon icon="material-symbols:error" class="text-red-500 text-xl mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 class="font-semibold text-red-800 dark:text-red-300 text-sm">Please complete all required fields</h4>
+              <p class="text-red-700 dark:text-red-400 text-xs mt-1">Fill in the missing information above to continue</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Step 2: Contract Details (Dynamic based on type) -->
       <div v-if="currentStep === 2" class="space-y-6">
-        <!-- Dynamic fields will go here based on contract type -->
-        <div class="chapa-glass-card p-5 text-center">
+        <!-- Contract Type Specific Content -->
+        <div v-if="currentContractType?.id === 'debt'" class="space-y-6">
+          <!-- Debt Amount -->
+          <div class="chapa-glass-card p-5">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
+              Loan Amount *
+            </label>
+            <div class="flex space-x-3">
+              <select 
+                v-model="contractData.debt.currency"
+                class="input-modern w-24 flex-shrink-0"
+              >
+                <option 
+                  v-for="currency in availableCurrencies" 
+                  :key="'debt-' + currency.code"
+                  :value="currency.code"
+                >
+                  {{ currency.symbol }}
+                </option>
+              </select>
+              <input 
+                v-model="contractData.debt.amount"
+                type="number" 
+                placeholder="0.00"
+                class="input-modern flex-1"
+              >
+            </div>
+          </div>
+
+          <!-- Interest Rate -->
+          <div class="chapa-glass-card p-5">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
+              Interest Rate (% per annum)
+            </label>
+            <input 
+              v-model="contractData.debt.interestRate"
+              type="number" 
+              placeholder="e.g., 10"
+              step="0.1"
+              class="input-modern w-full"
+            >
+          </div>
+
+          <!-- Repayment Terms -->
+          <div class="chapa-glass-card p-5">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
+              Repayment Period (Months)
+            </label>
+            <input 
+              v-model="contractData.debt.repaymentMonths"
+              type="number" 
+              placeholder="e.g., 12"
+              class="input-modern w-full"
+            >
+          </div>
+        </div>
+
+        <!-- Sales Agreement Content -->
+        <div v-else-if="currentContractType?.id === 'sales'" class="space-y-6">
+          <!-- Goods Description -->
+          <div class="chapa-glass-card p-5">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
+              Goods/Services Description *
+            </label>
+            <textarea 
+              v-model="contractData.sales.description"
+              rows="3"
+              placeholder="Describe the goods or services being sold..."
+              class="input-modern w-full resize-none"
+            ></textarea>
+          </div>
+
+          <!-- Price -->
+          <div class="chapa-glass-card p-5">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
+              Total Price *
+            </label>
+            <div class="flex space-x-3">
+              <select 
+                v-model="contractData.sales.currency"
+                class="input-modern w-24 flex-shrink-0"
+              >
+                <option 
+                  v-for="currency in availableCurrencies" 
+                  :key="'sales-' + currency.code"
+                  :value="currency.code"
+                >
+                  {{ currency.symbol }}
+                </option>
+              </select>
+              <input 
+                v-model="contractData.sales.price"
+                type="number" 
+                placeholder="0.00"
+                class="input-modern flex-1"
+              >
+            </div>
+          </div>
+
+          <!-- Delivery Terms -->
+          <div class="chapa-glass-card p-5">
+            <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
+              Delivery Date
+            </label>
+            <input 
+              v-model="contractData.sales.deliveryDate"
+              type="date" 
+              class="input-modern w-full"
+            >
+          </div>
+        </div>
+
+        <!-- Default Content for other types -->
+        <div v-else class="chapa-glass-card p-5 text-center">
           <Icon icon="material-symbols:construction" class="text-4xl text-chapa-orange-500 mb-3" />
           <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 font-poppins">
             Contract Details
           </h3>
-          <p class="text-gray-600 dark:text-gray-300 text-sm">
-            Dynamic fields for {{ currentContractType?.name }} coming soon!
+          <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
+            Configure the specific details for your {{ currentContractType?.name }}
           </p>
+          <button @click="autoFillTemplate" class="btn-secondary">
+            <Icon icon="material-symbols:auto-awesome" class="text-lg" />
+            <span>Auto-fill Template</span>
+          </button>
         </div>
       </div>
 
@@ -193,14 +336,19 @@
       <div v-if="currentStep === 3" class="space-y-6">
         <div class="chapa-glass-card p-5">
           <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
-            Terms & Conditions
+            Terms & Conditions *
+            <span v-if="showErrors && !contractData.terms?.trim()" class="text-red-500 text-xs ml-1">(Required)</span>
           </h3>
           <textarea 
             v-model="contractData.terms"
-            rows="6"
+            rows="8"
             placeholder="Enter the specific terms and conditions of this agreement..."
             class="input-modern w-full resize-none"
+            :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.terms?.trim() }"
           ></textarea>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Describe the rights, responsibilities, and obligations of both parties
+          </p>
         </div>
 
         <!-- Auto-generated clauses based on contract type -->
@@ -236,18 +384,21 @@
             @click="previousStep"
             class="btn-secondary flex-1 flex items-center justify-center space-x-2 py-3"
           >
-            <Icon icon="material-symbols:arrow-back" />
-            <span class="font-poppins">Back</span>
+            <Icon icon="material-symbols:arrow-back" class="text-lg" />
+            <span class="font-poppins font-medium">Back</span>
           </button>
           
           <button 
             @click="nextStep"
-            class="btn-primary flex-1 flex items-center justify-center space-x-2 py-3"
+            :disabled="currentStep === totalSteps && !contractData.terms?.trim()"
+            class="flex-1 flex items-center justify-center space-x-2 py-3 font-poppins font-medium transition-all duration-300"
+            :class="getNextButtonClass()"
           >
-            <span class="font-poppins">
-              {{ currentStep === totalSteps ? 'Create Contract' : 'Continue' }}
-            </span>
-            <Icon icon="material-symbols:arrow-forward" />
+            <span>{{ getNextButtonText() }}</span>
+            <Icon 
+              :icon="currentStep === totalSteps ? 'material-symbols:check' : 'material-symbols:arrow-forward'" 
+              class="text-lg" 
+            />
           </button>
         </div>
       </div>
@@ -266,6 +417,7 @@ const route = useRoute()
 // Step management
 const currentStep = ref(1)
 const totalSteps = 3
+const showErrors = ref(false)
 
 // Contract data
 const contractData = ref({
@@ -282,10 +434,23 @@ const contractData = ref({
     currency: ''
   },
   terms: '',
-  clauses: [] as string[]
+  clauses: [] as string[],
+  // Dynamic fields based on contract type
+  debt: {
+    amount: '',
+    currency: 'NGN',
+    interestRate: '',
+    repaymentMonths: ''
+  },
+  sales: {
+    description: '',
+    price: '',
+    currency: 'NGN',
+    deliveryDate: ''
+  }
 })
 
-// Available countries and currencies
+// Available countries and currencies (same as before)
 const targetCountries = {
   africa: [
     { code: 'NG', name: 'Nigeria', currency: 'NGN' },
@@ -294,7 +459,6 @@ const targetCountries = {
     { code: 'ZA', name: 'South Africa', currency: 'ZAR' },
     { code: 'EG', name: 'Egypt', currency: 'EGP' },
     { code: 'TD', name: 'Chad', currency: 'XAF' }
-    // ... all 54 countries
   ],
   asia: [
     { code: 'CN', name: 'China', currency: 'CNY' },
@@ -316,10 +480,10 @@ const availableCurrencies = [
 
 // Contract types
 const contractTypes = {
-  debt: { name: 'Debt Agreement', icon: 'material-symbols:money' },
-  sales: { name: 'Sales Agreement', icon: 'material-symbols:shopping-cart' },
-  service: { name: 'Service Contract', icon: 'material-symbols:design-services' },
-  partnership: { name: 'Partnership Agreement', icon: 'material-symbols:handshake' }
+  debt: { id: 'debt', name: 'Debt Agreement', icon: 'material-symbols:money' },
+  sales: { id: 'sales', name: 'Sales Agreement', icon: 'material-symbols:shopping-cart' },
+  service: { id: 'service', name: 'Service Contract', icon: 'material-symbols:design-services' },
+  partnership: { id: 'partnership', name: 'Partnership Agreement', icon: 'material-symbols:handshake' }
 }
 
 const currentContractType = computed(() => {
@@ -327,7 +491,23 @@ const currentContractType = computed(() => {
   return contractTypes[type as keyof typeof contractTypes] || null
 })
 
-// Suggested clauses based on contract type
+// Validation
+const isStep1Valid = computed(() => {
+  return (
+    contractData.value.title?.trim() &&
+    contractData.value.parties.firstParty.name?.trim() &&
+    contractData.value.parties.secondParty.name?.trim() &&
+    contractData.value.jurisdiction.firstCountry &&
+    contractData.value.jurisdiction.secondCountry &&
+    contractData.value.jurisdiction.currency
+  )
+})
+
+const isStep3Valid = computed(() => {
+  return contractData.value.terms?.trim()
+})
+
+// Suggested clauses (same as before)
 const suggestedClauses = computed(() => {
   const type = route.query.type as string
   const clauses = {
@@ -341,7 +521,6 @@ const suggestedClauses = computed(() => {
       { id: 2, title: 'Payment Terms', text: 'Payment shall be made within 30 days of invoice date...' },
       { id: 3, title: 'Warranty', text: 'The seller warrants that the goods are free from defects...' }
     ]
-    // Add more for other contract types
   }
   return clauses[type as keyof typeof clauses] || []
 })
@@ -350,14 +529,31 @@ const suggestedClauses = computed(() => {
 const goBack = () => {
   if (currentStep.value > 1) {
     currentStep.value--
+    showErrors.value = false
   } else {
     router.push('/')
   }
 }
 
 const nextStep = () => {
+  // Validate current step before proceeding
+  if (currentStep.value === 1 && !isStep1Valid.value) {
+    showErrors.value = true
+    // Scroll to top to show errors
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+
+  if (currentStep.value === 3 && !isStep3Valid.value) {
+    showErrors.value = true
+    return
+  }
+
   if (currentStep.value < totalSteps) {
     currentStep.value++
+    showErrors.value = false
+    // Scroll to top when changing steps
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
     createContract()
   }
@@ -366,6 +562,25 @@ const nextStep = () => {
 const previousStep = () => {
   if (currentStep.value > 1) {
     currentStep.value--
+    showErrors.value = false
+    // Scroll to top when changing steps
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+const getNextButtonClass = () => {
+  if (currentStep.value === totalSteps && !contractData.value.terms?.trim()) {
+    return 'bg-gray-300 text-gray-500 cursor-not-allowed'
+  }
+  return 'btn-primary hover:scale-105 active:scale-95'
+}
+
+const getNextButtonText = () => {
+  switch (currentStep.value) {
+    case 1: return 'Continue to Details'
+    case 2: return 'Continue to Terms'
+    case 3: return 'Create Contract'
+    default: return 'Continue'
   }
 }
 
@@ -382,27 +597,49 @@ const addClause = (clauseText: string) => {
   contractData.value.terms += '\n\n' + clauseText
 }
 
+const autoFillTemplate = () => {
+  const templates = {
+    debt: `DEBT AGREEMENT
+
+This Debt Agreement is made between [First Party] and [Second Party].
+
+1. LOAN AMOUNT: [Amount] [Currency]
+2. INTEREST RATE: [Rate]% per annum
+3. REPAYMENT: [Months] months
+4. DEFAULT: Consequences as per applicable laws.`,
+    
+    sales: `SALES AGREEMENT
+
+This Sales Agreement is made between [First Party] and [Second Party].
+
+1. GOODS: [Description]
+2. PRICE: [Amount] [Currency]  
+3. DELIVERY: As agreed by both parties
+4. PAYMENT: Terms to be specified.`
+  }
+
+  const template = templates[contractData.value.type as keyof typeof templates]
+  if (template) {
+    contractData.value.terms = template
+  }
+}
+
 const saveDraft = () => {
-  // Save to local storage
   localStorage.setItem('contractDraft', JSON.stringify(contractData.value))
-  // Show success message
   alert('Draft saved successfully!')
 }
 
 const createContract = () => {
-  // Final contract creation logic
   console.log('Creating contract:', contractData.value)
   // Navigate to preview/signature page
   router.push('/signature')
 }
 
 onMounted(() => {
-  // Load contract type from URL
   if (route.query.type) {
     contractData.value.type = route.query.type as string
   }
   
-  // Load draft if exists
   const draft = localStorage.getItem('contractDraft')
   if (draft) {
     contractData.value = { ...contractData.value, ...JSON.parse(draft) }
@@ -411,19 +648,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Mobile-optimized styles */
 .container {
   max-width: 100%;
   padding-left: 1rem;
   padding-right: 1rem;
 }
 
-/* Ensure inputs are mobile-friendly */
 input, select, textarea {
-  font-size: 16px; /* Prevents zoom on iOS */
+  font-size: 16px;
 }
 
-/* Smooth transitions for step changes */
 .step-transition {
   transition: all 0.3s ease-in-out;
 }

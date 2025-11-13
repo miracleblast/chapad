@@ -1,59 +1,11 @@
 import { Contract } from './contracts'
+import { Signature } from './signature'
 
 export class StorageEngine {
   private dbName = 'ChapaDocsDB'
   private version = 1
   private db: IDBDatabase | null = null
-// Add to your existing StorageEngine class in /src/utils/storage.ts
 
-// Signature operations
-async saveSignature(signature: any): Promise<void> {
-  await this.ensureInit()
-  return new Promise((resolve, reject) => {
-    const transaction = this.db!.transaction(['signatures'], 'readwrite')
-    const store = transaction.objectStore('signatures')
-    const request = store.put(signature)
-
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve()
-  })
-}
-
-async getSignature(id: string): Promise<any> {
-  await this.ensureInit()
-  return new Promise((resolve, reject) => {
-    const transaction = this.db!.transaction(['signatures'], 'readonly')
-    const store = transaction.objectStore('signatures')
-    const request = store.get(id)
-
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve(request.result || null)
-  })
-}
-
-async getAllSignatures(): Promise<any[]> {
-  await this.ensureInit()
-  return new Promise((resolve, reject) => {
-    const transaction = this.db!.transaction(['signatures'], 'readonly')
-    const store = transaction.objectStore('signatures')
-    const request = store.getAll()
-
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve(request.result || [])
-  })
-}
-
-async deleteSignature(id: string): Promise<void> {
-  await this.ensureInit()
-  return new Promise((resolve, reject) => {
-    const transaction = this.db!.transaction(['signatures'], 'readwrite')
-    const store = transaction.objectStore('signatures')
-    const request = store.delete(id)
-
-    request.onerror = () => reject(request.error)
-    request.onsuccess = () => resolve()
-  })
-}
   // Initialize database
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -74,6 +26,13 @@ async deleteSignature(id: string): Promise<void> {
           store.createIndex('slug', 'slug', { unique: false })
           store.createIndex('type', 'type', { unique: false })
           store.createIndex('createdAt', 'createdAt', { unique: false })
+        }
+
+        // Create signatures store
+        if (!db.objectStoreNames.contains('signatures')) {
+          const store = db.createObjectStore('signatures', { keyPath: 'id' })
+          store.createIndex('contractId', 'contractId', { unique: false })
+          store.createIndex('party', 'party', { unique: false })
         }
 
         // Create settings store
@@ -133,6 +92,55 @@ async deleteSignature(id: string): Promise<void> {
     })
   }
 
+  // Signature operations
+  async saveSignature(signature: Signature): Promise<void> {
+    await this.ensureInit()
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['signatures'], 'readwrite')
+      const store = transaction.objectStore('signatures')
+      const request = store.put(signature)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve()
+    })
+  }
+
+  async getSignature(id: string): Promise<Signature | null> {
+    await this.ensureInit()
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['signatures'], 'readonly')
+      const store = transaction.objectStore('signatures')
+      const request = store.get(id)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve(request.result || null)
+    })
+  }
+
+  async getAllSignatures(): Promise<Signature[]> {
+    await this.ensureInit()
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['signatures'], 'readonly')
+      const store = transaction.objectStore('signatures')
+      const request = store.getAll()
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve(request.result || [])
+    })
+  }
+
+  async deleteSignature(id: string): Promise<void> {
+    await this.ensureInit()
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['signatures'], 'readwrite')
+      const store = transaction.objectStore('signatures')
+      const request = store.delete(id)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve()
+    })
+  }
+
   // Settings operations
   async saveSettings(settings: any): Promise<void> {
     await this.ensureInit()
@@ -169,9 +177,10 @@ async deleteSignature(id: string): Promise<void> {
   async clearAllData(): Promise<void> {
     await this.ensureInit()
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(['contracts', 'settings'], 'readwrite')
+      const transaction = this.db!.transaction(['contracts', 'signatures', 'settings'], 'readwrite')
       
       transaction.objectStore('contracts').clear()
+      transaction.objectStore('signatures').clear()
       transaction.objectStore('settings').clear()
 
       transaction.onerror = () => reject(transaction.error)

@@ -1,3 +1,5 @@
+import { StorageEngine } from "./storage"
+
 export interface Signature {
   id: string
   contractId: string

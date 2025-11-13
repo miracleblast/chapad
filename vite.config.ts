@@ -4,13 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
 import path from 'path'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    vue({
-      // This ensures proper Vue 3 support
-      reactivityTransform: true
-    }),
+    vue(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
@@ -56,9 +52,5 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
-  },
-  // Add this for better development experience
-  optimizeDeps: {
-    include: ['@iconify/vue']
   }
 })
