@@ -9,6 +9,11 @@ const router = createRouter({
       component: () => import('../views/Home.vue')
     },
     {
+      path: '/select-type',
+      name: 'select-type', 
+      component: () => import('../views/ContractTypeSelector.vue')
+    },
+    {
       path: '/builder',
       name: 'builder',
       component: () => import('../views/ContractBuilder.vue')

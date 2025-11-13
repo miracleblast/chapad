@@ -29,15 +29,18 @@
     <!-- Template Gallery -->
     <div class="container mx-auto px-4 py-6">
       <!-- Community Templates -->
-      <div class="mb-8">
+      <div class="mb-8" v-if="filteredCommunityTemplates.length > 0">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 font-poppins flex items-center space-x-2">
           <Icon icon="material-symbols:group" class="text-chapa-orange-500" />
           <span>Community Templates</span>
+          <span class="text-xs bg-chapa-orange-100 dark:bg-chapa-orange-900 text-chapa-orange-700 dark:text-chapa-orange-300 px-2 py-1 rounded-full">
+            {{ filteredCommunityTemplates.length }}
+          </span>
         </h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div 
-            v-for="template in communityTemplates" 
+            v-for="template in filteredCommunityTemplates" 
             :key="template.id"
             class="chapa-glass-card p-5 card-hover"
             @click="useTemplate(template)"
@@ -65,7 +68,7 @@
             <div class="flex items-center justify-between text-xs text-gray-500">
               <span class="flex items-center space-x-1">
                 <Icon icon="material-symbols:location-on" />
-                <span>{{ template.jurisdiction }}</span>
+                <span>{{ getJurisdictionName(template.jurisdiction) }}</span>
               </span>
               <span class="flex items-center space-x-1">
                 <Icon icon="material-symbols:download" />
@@ -88,15 +91,18 @@
       </div>
 
       <!-- Official Templates -->
-      <div class="mb-8">
+      <div class="mb-8" v-if="filteredOfficialTemplates.length > 0">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 font-poppins flex items-center space-x-2">
           <Icon icon="material-symbols:verified" class="text-chapa-purple-500" />
           <span>Official ChapaDocs Templates</span>
+          <span class="text-xs bg-chapa-purple-100 dark:bg-chapa-purple-900 text-chapa-purple-700 dark:text-chapa-purple-300 px-2 py-1 rounded-full">
+            {{ filteredOfficialTemplates.length }}
+          </span>
         </h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div 
-            v-for="template in officialTemplates" 
+            v-for="template in filteredOfficialTemplates" 
             :key="template.id"
             class="chapa-glass-card p-5 card-hover border-2 border-chapa-purple-200 dark:border-chapa-purple-800"
             @click="useTemplate(template)"
@@ -132,6 +138,20 @@
           </div>
         </div>
       </div>
+
+      <!-- Empty State -->
+      <div v-if="filteredTemplates.length === 0" class="text-center py-12">
+        <Icon icon="material-symbols:search-off" class="text-6xl text-gray-300 dark:text-gray-600 mb-4 mx-auto" />
+        <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2 font-poppins">
+          No templates found
+        </h3>
+        <p class="text-gray-500 dark:text-gray-500 text-sm mb-4">
+          {{ selectedType ? `No ${getTypeName(selectedType)} templates available` : 'No templates available' }}
+        </p>
+        <button @click="clearFilters" class="btn-primary">
+          Show All Templates
+        </button>
+      </div>
     </div>
 
     <!-- Floating Action Button -->
@@ -147,7 +167,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { useRouter, useRoute } from 'vue-router'
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -155,7 +175,12 @@ const route = useRoute()
 // Get selected type from route query
 const selectedType = ref(route.query.type as string)
 
-// Sample template data - in real app, this would come from your backend/IndexedDB
+// Watch for route changes to update the filter
+watch(() => route.query.type, (newType) => {
+  selectedType.value = newType as string
+})
+
+// Sample template data - in real app, this would come from your TemplateEngine
 const communityTemplates = [
   {
     id: 'debt-ng-1',
@@ -163,7 +188,7 @@ const communityTemplates = [
     type: 'debt',
     description: 'Comprehensive debt agreement tailored for Nigerian jurisdiction with clear recovery terms.',
     contributor: { name: 'ABC Law Partners', verified: true },
-    jurisdiction: 'Nigeria',
+    jurisdiction: 'NG',
     downloads: 245,
     rating: 4.8
   },
@@ -173,40 +198,88 @@ const communityTemplates = [
     type: 'sales',
     description: 'Sales agreement optimized for Kenyan business regulations and tax requirements.',
     contributor: { name: 'John Mwangi', verified: true },
-    jurisdiction: 'Kenya', 
+    jurisdiction: 'KE', 
     downloads: 187,
     rating: 4.6
   },
-  // Add more community templates...
+  {
+    id: 'service-za-1',
+    title: 'South Africa Consulting Agreement',
+    type: 'service',
+    description: 'Professional services contract for consulting work in South Africa.',
+    contributor: { name: 'Cape Legal Firm', verified: true },
+    jurisdiction: 'ZA',
+    downloads: 132,
+    rating: 4.7
+  },
+  {
+    id: 'partnership-gh-1',
+    title: 'Ghana Business Partnership',
+    type: 'partnership',
+    description: 'Partnership agreement for Ghanaian businesses with profit-sharing terms.',
+    contributor: { name: 'Accra Business Group', verified: true },
+    jurisdiction: 'GH',
+    downloads: 98,
+    rating: 4.5
+  }
 ]
 
 const officialTemplates = [
   {
-    id: 'debt-official',
-    title: 'Standard Debt Agreement',
+    id: 'debt-official-ng',
+    title: 'Standard Debt Agreement - Nigeria',
     type: 'debt',
     description: 'Professional debt agreement with flexible repayment terms and interest options.',
     duration: '5-10 min',
-    usage: '87% used'
+    usage: '87% used',
+    jurisdiction: 'NG'
   },
   {
-    id: 'sales-official',
-    title: 'Basic Sales Agreement', 
+    id: 'sales-official-ke',
+    title: 'Basic Sales Agreement - Kenya', 
     type: 'sales',
     description: 'Simple sales contract for goods and services with standard terms.',
     duration: '5-10 min',
-    usage: '65% used'
+    usage: '65% used',
+    jurisdiction: 'KE'
   },
-  // Add more official templates...
+  {
+    id: 'service-official-za',
+    title: 'Service Contract - South Africa',
+    type: 'service',
+    description: 'Comprehensive service agreement for professional services.',
+    duration: '10-15 min',
+    usage: '58% used',
+    jurisdiction: 'ZA'
+  },
+  {
+    id: 'partnership-official-gh',
+    title: 'Partnership Agreement - Ghana',
+    type: 'partnership',
+    description: 'Business partnership agreement with clear roles and responsibilities.',
+    duration: '15-20 min',
+    usage: '42% used',
+    jurisdiction: 'GH'
+  }
 ]
 
 // Filter templates based on selected type
-const filteredTemplates = computed(() => {
-  const allTemplates = [...officialTemplates, ...communityTemplates]
+const filteredCommunityTemplates = computed(() => {
   if (selectedType.value) {
-    return allTemplates.filter(template => template.type === selectedType.value)
+    return communityTemplates.filter(template => template.type === selectedType.value)
   }
-  return allTemplates
+  return communityTemplates
+})
+
+const filteredOfficialTemplates = computed(() => {
+  if (selectedType.value) {
+    return officialTemplates.filter(template => template.type === selectedType.value)
+  }
+  return officialTemplates
+})
+
+const filteredTemplates = computed(() => {
+  return [...filteredOfficialTemplates.value, ...filteredCommunityTemplates.value]
 })
 
 // Helper methods
@@ -215,7 +288,11 @@ const getTypeName = (type: string) => {
     debt: 'Debt Agreement',
     sales: 'Sales Agreement',
     service: 'Service Contract',
-    partnership: 'Partnership Agreement'
+    partnership: 'Partnership Agreement',
+    'import-export': 'Import/Export',
+    employment: 'Employment',
+    nda: 'Confidentiality',
+    custom: 'Custom Contract'
   }
   return typeNames[type] || type
 }
@@ -225,7 +302,11 @@ const getTypeIcon = (type: string) => {
     debt: 'material-symbols:money',
     sales: 'material-symbols:shopping-cart',
     service: 'material-symbols:design-services',
-    partnership: 'material-symbols:handshake'
+    partnership: 'material-symbols:handshake',
+    'import-export': 'material-symbols:airport-shuttle',
+    employment: 'material-symbols:work',
+    nda: 'material-symbols:lock',
+    custom: 'material-symbols:edit-document'
   }
   return icons[type] || 'material-symbols:description'
 }
@@ -235,9 +316,25 @@ const getTypeColor = (type: string) => {
     debt: { bg: 'bg-chapa-orange-100 dark:bg-chapa-orange-900', text: 'text-chapa-orange-500' },
     sales: { bg: 'bg-chapa-purple-100 dark:bg-chapa-purple-900', text: 'text-chapa-purple-500' },
     service: { bg: 'bg-blue-100 dark:bg-blue-900', text: 'text-blue-500' },
-    partnership: { bg: 'bg-green-100 dark:bg-green-900', text: 'text-green-500' }
+    partnership: { bg: 'bg-green-100 dark:bg-green-900', text: 'text-green-500' },
+    'import-export': { bg: 'bg-yellow-100 dark:bg-yellow-900', text: 'text-yellow-500' },
+    employment: { bg: 'bg-indigo-100 dark:bg-indigo-900', text: 'text-indigo-500' },
+    nda: { bg: 'bg-red-100 dark:bg-red-900', text: 'text-red-500' }
   }
   return colors[type] || { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-500' }
+}
+
+const getJurisdictionName = (jurisdiction: string) => {
+  const names: { [key: string]: string } = {
+    NG: 'Nigeria',
+    KE: 'Kenya',
+    GH: 'Ghana',
+    ZA: 'South Africa',
+    CN: 'China',
+    IN: 'India',
+    RU: 'Russia'
+  }
+  return names[jurisdiction] || jurisdiction
 }
 
 // Template usage

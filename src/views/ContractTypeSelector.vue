@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen p-4 bg-chapa-sand-50 dark:bg-gray-900">
+ <div class="min-h-screen p-4 bg-chapa-sand-50 dark:bg-gray-900 pb-40"> <!-- Added pb-40 for bottom spacing -->
     <!-- Header -->
     <div class="text-center mb-6">
       <div class="bird-nod mb-3">
@@ -35,7 +35,7 @@
       </button>
 
       <!-- Sales Agreement -->
-      <button 
+        <button 
         @click="selectContractType('sales')"
         class="chapa-glass-card p-4 text-center card-hover"
       >
@@ -131,7 +131,7 @@
       </button>
 
       <!-- Custom Contract -->
-      <button 
+           <button 
         @click="selectContractType('custom')"
         class="chapa-glass-card p-4 text-center card-hover border-2 border-dashed border-gray-300 dark:border-gray-600"
       >
@@ -169,22 +169,23 @@
     </div>
 
     <!-- Bottom Action -->
-    <div class="fixed bottom-32 left-4 right-4 space-y-3">
-  <button 
-    @click="createFromScratch"
-    class="w-full btn-primary flex items-center justify-center space-x-2 py-3"
-  >
-    <Icon icon="material-symbols:edit-document" class="text-lg" />
-    <span class="font-poppins font-medium">Create from Scratch</span>
-  </button>
-  
-  <button 
-   @click="browseTemplates"
-    class="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
-  >
-    <Icon icon="material-symbols:library-books" class="text-lg" />
-    <span class="font-poppins font-medium">Browse Templates</span>
-  </button>
+    <!-- Bottom Action - FIXED LOGIC -->
+    <div class="fixed bottom-20 left-4 right-4 space-y-3 bg-chapa-sand-50 dark:bg-gray-900 pt-4 pb-6"> <!-- Added background and padding -->
+      <button 
+        @click="createFromScratch"
+        class="w-full btn-primary flex items-center justify-center space-x-2 py-3"
+      >
+        <Icon icon="material-symbols:edit-document" class="text-lg" />
+        <span class="font-poppins font-medium">Create Empty Contract</span>
+      </button>
+      
+      <button 
+        @click="browseAllTemplates"
+        class="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
+      >
+        <Icon icon="material-symbols:library-books" class="text-lg" />
+        <span class="font-poppins font-medium">Browse All Templates</span>
+      </button>
 </div>
   </div>
 </template>
@@ -268,35 +269,22 @@ const selectContractType = (typeId: string) => {
   })
 }
 
+// Bottom button: Create from scratch - GO TO BUILDER WITH EMPTY TEMPLATE
 const createFromScratch = () => {
-  console.log('Creating from scratch')
-  // Get the selected type from URL or use default
-  const urlParams = new URLSearchParams(window.location.search)
-  const selectedType = urlParams.get('type')
-  
-  if (selectedType) {
-    router.push({
-      path: '/builder',
-      query: { 
-        type: selectedType, 
-        fromScratch: 'true' 
-      }
-    })
-  } else {
-    // No type selected, go to builder with custom type
-    router.push({
-      path: '/builder',
-      query: { 
-        type: 'custom', 
-        fromScratch: 'true' 
-      }
-    })
-  }
+  console.log('Creating empty contract from scratch')
+  router.push({
+    path: '/builder',
+    query: { 
+      fromScratch: 'true',
+      type: 'custom'
+    }
+  })
 }
 
-const browseTemplates = () => {
-  console.log('Browsing templates')
-  router.push('/templates')
+// Bottom button: Browse all templates - GO TO TEMPLATES (NO FILTER)
+const browseAllTemplates = () => {
+  console.log('Browsing all templates')
+  router.push('/templates') // No query params = show all templates
 }
 </script>
 
@@ -316,5 +304,10 @@ button {
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Make bottom buttons look like they're part of the page */
+.fixed {
+  background: inherit;
 }
 </style>
