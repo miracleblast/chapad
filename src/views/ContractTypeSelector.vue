@@ -5,9 +5,9 @@
       <div class="bird-nod mb-3">
         <Icon icon="noto:bird" class="text-5xl text-chapa-purple-600" />
       </div>
-      <h1 class="text-2xl font-cal text-gradient-purple mb-2">Create Contract</h1>
+      <h1 class="text-2xl font-cal text-gradient-purple mb-2">Choose Contract Type</h1>
       <p class="text-gray-600 dark:text-gray-300 font-poppins text-sm">
-        Choose your contract type to get started
+        Select your contract type to get started
       </p>
     </div>
 
@@ -169,15 +169,23 @@
     </div>
 
     <!-- Bottom Action -->
-    <div class="fixed bottom-20 left-4 right-4">
-      <button 
-        @click="goToTemplates"
-        class="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
-      >
-        <Icon icon="material-symbols:library-books" class="text-lg" />
-        <span class="font-poppins font-medium">Browse Templates</span>
-      </button>
-    </div>
+    <div class="fixed bottom-32 left-4 right-4 space-y-3">
+  <button 
+    @click="createFromScratch"
+    class="w-full btn-primary flex items-center justify-center space-x-2 py-3"
+  >
+    <Icon icon="material-symbols:edit-document" class="text-lg" />
+    <span class="font-poppins font-medium">Create from Scratch</span>
+  </button>
+  
+  <button 
+   @click="browseTemplates"
+    class="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
+  >
+    <Icon icon="material-symbols:library-books" class="text-lg" />
+    <span class="font-poppins font-medium">Browse Templates</span>
+  </button>
+</div>
   </div>
 </template>
 
@@ -250,15 +258,44 @@ const contractTypes = [
   }
 ]
 
+// When user selects a specific type
 const selectContractType = (typeId: string) => {
-  // Navigate to contract builder with selected type
+  console.log('Selected contract type:', typeId)
+  // Navigate to templates filtered by this type
   router.push({
-    path: '/builder',
+    path: '/templates',
     query: { type: typeId }
   })
 }
 
-const goToTemplates = () => {
+const createFromScratch = () => {
+  console.log('Creating from scratch')
+  // Get the selected type from URL or use default
+  const urlParams = new URLSearchParams(window.location.search)
+  const selectedType = urlParams.get('type')
+  
+  if (selectedType) {
+    router.push({
+      path: '/builder',
+      query: { 
+        type: selectedType, 
+        fromScratch: 'true' 
+      }
+    })
+  } else {
+    // No type selected, go to builder with custom type
+    router.push({
+      path: '/builder',
+      query: { 
+        type: 'custom', 
+        fromScratch: 'true' 
+      }
+    })
+  }
+}
+
+const browseTemplates = () => {
+  console.log('Browsing templates')
   router.push('/templates')
 }
 </script>

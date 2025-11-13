@@ -13,26 +13,27 @@
 
     <!-- Quick Actions -->
     <div class="grid grid-cols-2 gap-4 mb-8">
-      <!-- New Contract -->
-      <RouterLink 
-        to="/builder" 
-        class="chapa-glass-card p-6 text-center card-hover"
-      >
-        <Icon icon="material-symbols:add-circle" class="text-3xl text-chapa-purple-600 mb-2" />
-        <h3 class="font-semibold text-gray-800 dark:text-white font-poppins">New Contract</h3>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Create from scratch</p>
-      </RouterLink>
+      <!-- New Contract - Goes to Type Selector -->
+     <RouterLink 
+  to="/select-type" 
+  class="chapa-glass-card p-6 text-center card-hover"
+>
+  <Icon icon="material-symbols:add-circle" class="text-3xl text-chapa-purple-600 mb-2" />
+  <h3 class="font-semibold text-gray-800 dark:text-white font-poppins">New Contract</h3>
+  <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Choose type first</p>
+</RouterLink>
 
-      <!-- Templates -->
+      <!-- Templates - Goes to Templates Gallery -->
       <RouterLink 
         to="/templates" 
         class="chapa-glass-card p-6 text-center card-hover"
       >
         <Icon icon="material-symbols:library-books" class="text-3xl text-chapa-orange-500 mb-2" />
         <h3 class="font-semibold text-gray-800 dark:text-white font-poppins">Templates</h3>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Use pre-made</p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Browse all templates</p>
       </RouterLink>
     </div>
+
 
     <!-- Recent Documents -->
     <div class="chapa-glass-card p-6">

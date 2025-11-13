@@ -410,6 +410,7 @@
 import { Icon } from '@iconify/vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { TemplateEngine } from '@/utils/templates'
 
 const router = useRouter()
 const route = useRoute()
@@ -488,6 +489,7 @@ const contractTypes = {
 
 const currentContractType = computed(() => {
   const type = route.query.type as string
+  console.log('Route query type:', type) // Debug log
   return contractTypes[type as keyof typeof contractTypes] || null
 })
 
@@ -536,10 +538,21 @@ const goBack = () => {
 }
 
 const nextStep = () => {
+  console.log('Next step clicked - Current step:', currentStep.value)
+  console.log('Contract data:', contractData.value)
+  console.log('Step 1 validation result:', isStep1Valid.value)
+
   // Validate current step before proceeding
   if (currentStep.value === 1 && !isStep1Valid.value) {
+    console.log('VALIDATION FAILED - Missing fields:')
+    console.log('Title:', !contractData.value.title?.trim())
+    console.log('First Party:', !contractData.value.parties.firstParty.name?.trim())
+    console.log('Second Party:', !contractData.value.parties.secondParty.name?.trim())
+    console.log('First Country:', !contractData.value.jurisdiction.firstCountry)
+    console.log('Second Country:', !contractData.value.jurisdiction.secondCountry)
+    console.log('Currency:', !contractData.value.jurisdiction.currency)
+    
     showErrors.value = true
-    // Scroll to top to show errors
     window.scrollTo({ top: 0, behavior: 'smooth' })
     return
   }
@@ -552,7 +565,6 @@ const nextStep = () => {
   if (currentStep.value < totalSteps) {
     currentStep.value++
     showErrors.value = false
-    // Scroll to top when changing steps
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
     createContract()
@@ -636,15 +648,78 @@ const createContract = () => {
 }
 
 onMounted(() => {
+  console.log('ContractBuilder route query:', route.query)
+  
   if (route.query.type) {
     contractData.value.type = route.query.type as string
+    console.log('Set contract type to:', contractData.value.type)
+    
+    // If this is a specific template, load template data
+    if (route.query.template && route.query.template !== 'true') {
+      console.log('Loading specific template:', route.query.template)
+      loadSpecificTemplate(route.query.template as string)
+    }
+    // If this is from scratch with a type, set appropriate title
+    else if (route.query.fromScratch === 'true') {
+      const typeNames: { [key: string]: string } = {
+        debt: 'Debt Agreement',
+        sales: 'Sales Agreement',
+        service: 'Service Contract',
+        partnership: 'Partnership Agreement'
+      }
+      contractData.value.title = `${typeNames[route.query.type as string] || route.query.type} - ${new Date().toLocaleDateString()}`
+    }
+  } else {
+    contractData.value.type = 'custom'
   }
   
-  const draft = localStorage.getItem('contractDraft')
+ const draft = localStorage.getItem('contractDraft')
   if (draft) {
-    contractData.value = { ...contractData.value, ...JSON.parse(draft) }
+    try {
+      const draftData = JSON.parse(draft)
+      // Only load draft if it matches the current contract type
+      if (!route.query.type || draftData.type === route.query.type) {
+        contractData.value = { ...contractData.value, ...draftData }
+      }
+    } catch (error) {
+      console.error('Error loading draft:', error)
+    }
   }
 })
+const loadSpecificTemplate = async (templateId: string) => {
+  console.log('Loading specific template:', templateId)
+  
+  // Use TemplateEngine instead of ContractEngine
+  const template = TemplateEngine.getTemplateById(templateId)
+  
+  if (template) {
+    console.log('Template found:', template)
+    
+    // Pre-fill the contract data with template content
+    if (template.content) {
+      contractData.value.terms = template.content
+    }
+    
+    // Set title from template
+    if (template.title) {
+      contractData.value.title = template.title
+    }
+    
+    // You can also pre-fill other fields based on the template
+    // For now, we'll just set the terms and title
+  } else {
+    console.warn('Template not found:', templateId)
+    // Fallback to basic template for the type
+    const typeNames: { [key: string]: string } = {
+      debt: 'Debt Agreement',
+      sales: 'Sales Agreement', 
+      service: 'Service Contract',
+      partnership: 'Partnership Agreement'
+    }
+    contractData.value.title = `${typeNames[contractData.value.type] || contractData.value.type} Template`
+    contractData.value.terms = `This is a ${contractData.value.type} agreement template. Fill in the details below.`
+  }
+}
 </script>
 
 <style scoped>

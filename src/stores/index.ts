@@ -9,6 +9,11 @@ const router = createRouter({
       component: () => import('../views/Home.vue')
     },
     {
+      path: '/select-type', 
+      name: 'select-type', 
+      component: () => import('../views/ContractTypeSelector.vue')
+    },
+    {
       path: '/builder',
       name: 'builder',
       component: () => import('../views/ContractBuilder.vue')
@@ -47,7 +52,7 @@ const router = createRouter({
       path: '/license',
       name: 'license',
       component: () => import('../views/LicenseView.vue')
-    }
+    },
   ]
 })
 

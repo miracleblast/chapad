@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen">
+  <div class="min-h-screen bg-chapa-sand-50 dark:bg-gray-900 transition-colors duration-300">
     <div class="container mx-auto px-4 py-8">
       <!-- Header -->
       <div class="text-center mb-8">
@@ -79,10 +79,10 @@
           <div class="space-y-3">
             <button 
               @click="toggleDarkMode"
-              class="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-300"
+              class="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-300 border-2"
               :class="isDarkMode 
-                ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white' 
-                : 'bg-chapa-purple-500 text-white shadow-lg shadow-chapa-purple-500/25'"
+                ? 'bg-gray-800 text-white border-gray-700 shadow-lg' 
+                : 'bg-white text-gray-800 border-gray-200 shadow-lg shadow-chapa-purple-500/25'"
             >
               <span class="flex items-center space-x-3">
                 <Icon :icon="isDarkMode ? 'material-symbols:dark-mode' : 'material-symbols:light-mode'" class="text-xl" />
@@ -90,7 +90,7 @@
               </span>
               <div class="flex items-center space-x-2">
                 <Icon :icon="isDarkMode ? 'material-symbols:night-sight-auto' : 'material-symbols:sunny'" class="text-lg" />
-                <Icon v-if="!isDarkMode" icon="material-symbols:check-circle" />
+                <Icon v-if="!isDarkMode" icon="material-symbols:check-circle" class="text-white" />
               </div>
             </button>
           </div>
@@ -303,7 +303,7 @@ const settings = ref({
   autoBackup: false
 })
 
-// Language System (Same as your Zoomka structure)
+// Language System
 const languages = [
   { code: 'en', name: 'English', nativeName: 'English', flag: 'circle-flags:uk' },
   { code: 'fr', name: 'French', nativeName: 'Français', flag: 'circle-flags:fr' },
@@ -315,6 +315,8 @@ const languages = [
 ]
 
 const currentLanguage = ref('en')
+
+// FIXED: Proper dark mode initialization
 const isDarkMode = ref(false)
 
 // Storage Stats
@@ -329,20 +331,25 @@ const totalUsage = computed(() => {
 // Methods
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
+  // Save preference to localStorage
+  localStorage.setItem('chapa-theme', isDarkMode.value ? 'dark' : 'light')
+  // Apply to document
   document.documentElement.classList.toggle('dark', isDarkMode.value)
 }
 
 const changeLanguage = (langCode: string) => {
   currentLanguage.value = langCode
-  // TODO: Integrate with vue-i18n
+  localStorage.setItem('chapa-language', langCode)
 }
 
 const toggleAutoSave = () => {
   settings.value.autoSave = !settings.value.autoSave
+  localStorage.setItem('chapa-settings', JSON.stringify(settings.value))
 }
 
 const toggleAutoBackup = () => {
   settings.value.autoBackup = !settings.value.autoBackup
+  localStorage.setItem('chapa-settings', JSON.stringify(settings.value))
 }
 
 const activateLicense = () => {
@@ -350,12 +357,12 @@ const activateLicense = () => {
     isLicensed.value = true
     showLicenseModal.value = false
     licenseKey.value = ''
-    // TODO: Integrate with your crypto payment system
+    localStorage.setItem('chapa-license', 'active')
   }
 }
 
 const manageLicense = () => {
-  // TODO: License management logic
+  showLicenseModal.value = true
 }
 
 const exportData = () => {
@@ -365,16 +372,20 @@ const exportData = () => {
 
 const clearData = () => {
   if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-    // TODO: Clear all data
+    localStorage.clear()
+    contractsCount.value = 0
+    templatesCount.value = 0
+    signaturesCount.value = 0
     alert('Data cleared successfully!')
   }
 }
 
+// FIXED: Proper navigation without redirecting back to settings
 const openLegal = (type: string) => {
-  router.push('/legal')
+  router.push(`/legal?tab=${type}`)
 }
 
-// Temporary i18n function (same as your Zoomka)
+// Temporary i18n function
 const $t = (key: string) => {
   const translations: { [key: string]: { [key: string]: string } } = {
     en: {
@@ -421,9 +432,36 @@ const $t = (key: string) => {
   return translations[currentLanguage.value]?.[key] || translations.en[key] || key
 }
 
+// FIXED: Proper initialization
 onMounted(() => {
-  // Check if user prefers dark mode
-  isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+  // Load theme preference
+  const savedTheme = localStorage.getItem('chapa-theme')
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  
+  // Priority: saved preference > system preference > light mode
+  if (savedTheme) {
+    isDarkMode.value = savedTheme === 'dark'
+  } else {
+    isDarkMode.value = prefersDark
+  }
+  
+  // Apply theme to document
   document.documentElement.classList.toggle('dark', isDarkMode.value)
+  
+  // Load language preference
+  const savedLanguage = localStorage.getItem('chapa-language')
+  if (savedLanguage) {
+    currentLanguage.value = savedLanguage
+  }
+  
+  // Load settings
+  const savedSettings = localStorage.getItem('chapa-settings')
+  if (savedSettings) {
+    settings.value = { ...settings.value, ...JSON.parse(savedSettings) }
+  }
+  
+  // Load license status
+  const licenseStatus = localStorage.getItem('chapa-license')
+  isLicensed.value = licenseStatus === 'active'
 })
 </script>
