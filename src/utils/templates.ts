@@ -445,7 +445,378 @@ Date: [Date]`,
         downloads: 0,
         rating: 4.4,
         createdAt: new Date().toISOString()
-      }
+      },
+      {
+  id: 'mining-license-ghana',
+  title: 'Ghana Mining License Agreement',
+  type: 'mining',
+  description: 'Mining license agreement compliant with Ghana Minerals and Mining Act, 2006',
+  jurisdiction: 'GH',
+  content: `MINING LICENSE AGREEMENT - GHANA
+
+This Mining License Agreement ("Agreement") is made on [Date] between:
+
+THE GOVERNMENT OF THE REPUBLIC OF GHANA, acting through the Minerals Commission of Ghana ("Licensor")
+
+AND
+
+[Company Name], a company incorporated under the Companies Act, 2019 (Act 992) with registration number [Company Registration Number] and having its registered office at [Company Address] ("Licensee")
+
+RECITALS:
+A. The Licensor is responsible for administering Ghana's mineral resources under the Minerals and Mining Act, 2006 (Act 703)
+B. The Licensee has the technical and financial capability to undertake mining operations
+
+ARTICLE 1 - GRANT OF LICENSE
+1.1 The Licensor grants the Licensee an exclusive mining license for [Mineral Type] in the area described as [Mining Area Coordinates] ("Licensed Area")
+1.2 License Term: [License Years] years, renewable subject to compliance
+1.3 Total Area: [Area Size] square kilometers
+
+ARTICLE 2 - OBLIGATIONS OF LICENSEE
+2.1 Pay annual mineral rights fees as prescribed by the Minerals Commission
+2.2 Submit quarterly production reports to the Minerals Commission
+2.3 Maintain environmental bond of [Bond Amount] GHS
+2.4 Employ at least [Local Employment Percentage]% Ghanaian personnel
+2.5 Implement approved Environmental Management Plan
+
+ARTICLE 3 - ROYALTIES AND TAXES
+3.1 Royalty Rate: [Royalty Percentage]% of total revenue as per Act 703
+3.2 Corporate Income Tax: As per Ghana Revenue Authority regulations
+3.3 Pay Mineral Duty as required by law
+
+ARTICLE 4 - LOCAL CONTENT
+4.1 Comply with Local Content and Local Participation Regulations, 2020 (L.I. 2431)
+4.2 Prioritize Ghanaian goods and services where available
+4.3 Transfer technology and build local capacity
+
+ARTICLE 5 - DISPUTE RESOLUTION
+5.1 Governing Law: Laws of Ghana
+5.2 Dispute Resolution: Arbitration under Ghana Alternative Dispute Resolution Act, 2010 (Act 798)
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+FOR THE GOVERNMENT OF GHANA:
+_________________________
+[Minister Name]
+Minister for Lands and Natural Resources
+
+FOR THE LICENSEE:
+_________________________
+[Company Representative]
+[Title]
+[Company Name]
+
+DATE: [Date]`,
+  fields: [
+    { key: 'Date', label: 'Agreement Date', type: 'date', required: true },
+    { key: 'Company Name', label: 'Mining Company Name', type: 'text', required: true },
+    { key: 'Company Registration Number', label: 'Company Registration Number', type: 'text', required: true },
+    { key: 'Company Address', label: 'Company Registered Address', type: 'text', required: true },
+    { key: 'Mineral Type', label: 'Mineral Type', type: 'select', required: true, options: ['Gold', 'Diamond', 'Bauxite', 'Manganese', 'Limestone', 'Salt', 'Other'] },
+    { key: 'Mining Area Coordinates', label: 'Mining Area Coordinates', type: 'textarea', required: true, placeholder: 'GPS coordinates of mining area' },
+    { key: 'License Years', label: 'License Term (Years)', type: 'number', required: true },
+    { key: 'Area Size', label: 'Area Size (sq km)', type: 'number', required: true },
+    { key: 'Bond Amount', label: 'Environmental Bond Amount (GHS)', type: 'number', required: true },
+    { key: 'Local Employment Percentage', label: 'Local Employment Percentage (%)', type: 'number', required: true },
+    { key: 'Royalty Percentage', label: 'Royalty Rate (%)', type: 'number', required: true },
+    { key: 'Minister Name', label: "Minister's Name", type: 'text', required: true },
+    { key: 'Company Representative', label: 'Company Representative Name', type: 'text', required: true },
+    { key: 'Title', label: 'Representative Title', type: 'text', required: true }
+  ],
+  isOfficial: true,
+  downloads: 0,
+  rating: 4.9,
+  createdAt: new Date().toISOString()
+},
+{
+  id: 'commodity-trading-africa',
+  title: 'Africa Commodity Trading Agreement',
+  type: 'commodity',
+  description: 'Commodity trading agreement for African agricultural and mineral commodities',
+  jurisdiction: 'AF', // Africa regional
+  content: `AFRICA COMMODITY TRADING AGREEMENT
+
+This Commodity Trading Agreement ("Agreement") is made on [Date] between:
+
+[Seller Name], a company registered in [Seller Country] with address at [Seller Address] ("Seller")
+
+AND
+
+[Buyer Name], a company registered in [Buyer Country] with address at [Buyer Address] ("Buyer")
+
+ARTICLE 1 - COMMODITY SPECIFICATIONS
+1.1 Commodity: [Commodity Type]
+1.2 Quality Standards: [Quality Standards]
+1.3 Quantity: [Quantity] [Units]
+1.4 Origin: [Country of Origin]
+
+ARTICLE 2 - PRICE AND PAYMENT
+2.1 Unit Price: [Unit Price] [Currency]
+2.2 Total Value: [Total Value] [Currency]
+2.3 Price Basis: [Price Basis - e.g., FOB, CIF]
+2.4 Payment Terms: [Payment Terms]
+2.5 Payment Currency: [Payment Currency]
+
+ARTICLE 3 - DELIVERY AND SHIPPING
+3.1 Delivery Period: [Delivery Period]
+3.2 Port of Loading: [Loading Port]
+3.3 Port of Discharge: [Discharge Port]
+3.4 Shipping Documents: Bill of Lading, Certificate of Origin, Quality Certificate
+
+ARTICLE 4 - AFRICAN TRADE PROVISIONS
+4.1 Compliance with [Seller Country] export regulations
+4.2 Compliance with [Buyer Country] import regulations
+4.3 Certificate of Origin required for African continental trade
+4.4 Adherence to AfCFTA rules where applicable
+
+ARTICLE 5 - FORCE MAJEURE
+5.1 Neither party liable for delays due to: political unrest, export bans, port closures, or other African market conditions
+
+ARTICLE 6 - GOVERNING LAW
+6.1 This Agreement shall be governed by [Governing Law Country] law
+6.2 Disputes shall be referred to [Dispute Resolution Body]
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+SELLER: _________________________
+For [Seller Name]
+Title: [Seller Signatory Title]
+
+BUYER: _________________________
+For [Buyer Name]
+Title: [Buyer Signatory Title]
+
+DATE: [Date]`,
+  fields: [
+    { key: 'Date', label: 'Agreement Date', type: 'date', required: true },
+    { key: 'Seller Name', label: 'Seller Company Name', type: 'text', required: true },
+    { key: 'Seller Country', label: 'Seller Country', type: 'text', required: true },
+    { key: 'Seller Address', label: 'Seller Address', type: 'text', required: true },
+    { key: 'Buyer Name', label: 'Buyer Company Name', type: 'text', required: true },
+    { key: 'Buyer Country', label: 'Buyer Country', type: 'text', required: true },
+    { key: 'Buyer Address', label: 'Buyer Address', type: 'text', required: true },
+    { key: 'Commodity Type', label: 'Commodity Type', type: 'select', required: true, options: ['Cocoa', 'Coffee', 'Cotton', 'Palm Oil', 'Cashew', 'Gold', 'Copper', 'Crude Oil', 'Diamond', 'Other'] },
+    { key: 'Quality Standards', label: 'Quality Standards', type: 'textarea', required: true },
+    { key: 'Quantity', label: 'Quantity', type: 'number', required: true },
+    { key: 'Units', label: 'Units', type: 'select', required: true, options: ['Metric Tons', 'Barrels', 'Kilograms', 'Bags', 'Ounces'] },
+    { key: 'Country of Origin', label: 'Country of Origin', type: 'text', required: true },
+    { key: 'Unit Price', label: 'Unit Price', type: 'number', required: true },
+    { key: 'Currency', label: 'Currency', type: 'select', required: true, options: ['USD', 'EUR', 'XOF', 'XAF', 'ZAR', 'NGN'] },
+    { key: 'Total Value', label: 'Total Value', type: 'number', required: true },
+    { key: 'Price Basis', label: 'Price Basis', type: 'select', required: true, options: ['FOB', 'CIF', 'CFR', 'EXW'] },
+    { key: 'Payment Terms', label: 'Payment Terms', type: 'select', required: true, options: ['Letter of Credit', 'Advance Payment', 'Document Against Acceptance', 'Open Account'] },
+    { key: 'Payment Currency', label: 'Payment Currency', type: 'select', required: true, options: ['USD', 'EUR', 'XOF', 'XAF', 'ZAR'] },
+    { key: 'Delivery Period', label: 'Delivery Period', type: 'text', required: true, placeholder: 'e.g., 30 days from agreement' },
+    { key: 'Loading Port', label: 'Port of Loading', type: 'text', required: true },
+    { key: 'Discharge Port', label: 'Port of Discharge', type: 'text', required: true },
+    { key: 'Governing Law Country', label: 'Governing Law Country', type: 'text', required: true },
+    { key: 'Dispute Resolution Body', label: 'Dispute Resolution Body', type: 'select', required: true, options: ['ICC International Court of Arbitration', 'LCIA', 'African Arbitration Association', 'National Courts'] },
+    { key: 'Seller Signatory Title', label: 'Seller Signatory Title', type: 'text', required: true },
+    { key: 'Buyer Signatory Title', label: 'Buyer Signatory Title', type: 'text', required: true }
+  ],
+  isOfficial: true,
+  downloads: 0,
+  rating: 4.7,
+  createdAt: new Date().toISOString()
+},
+{
+  id: 'agricultural-supply-rwanda',
+  title: 'Rwanda Agricultural Product Supply Agreement',
+  type: 'agriculture',
+  description: 'Agricultural supply agreement compliant with Rwanda National Agricultural Export Development Board requirements',
+  jurisdiction: 'RW',
+  content: `RWANDA AGRICULTURAL PRODUCT SUPPLY AGREEMENT
+
+This Agricultural Product Supply Agreement ("Agreement") is made on [Date] between:
+
+[Supplier Name], a registered agricultural cooperative/company in Rwanda with registration number [Supplier Registration Number] and address at [Supplier Address] ("Supplier")
+
+AND
+
+[Buyer Name], a company registered in [Buyer Country] with address at [Buyer Address] ("Buyer")
+
+RECITALS:
+A. Supplier produces quality agricultural products in Rwanda
+B. Buyer wishes to purchase agricultural products from Supplier
+C. Both parties agree to comply with Rwanda Food and Drugs Authority regulations
+
+ARTICLE 1 - PRODUCT SPECIFICATIONS
+1.1 Product: [Agricultural Product]
+1.2 Variety: [Product Variety]
+1.3 Quality Grade: [Quality Grade] as per Rwanda Standards Board
+1.4 Organic Certification: [Organic Status]
+1.5 Packaging: [Packaging Requirements]
+
+ARTICLE 2 - QUANTITY AND PRICE
+2.1 Total Quantity: [Total Quantity] [Units]
+2.2 Delivery Schedule: [Delivery Schedule]
+2.3 Price: [Price per Unit] RWF per [Unit]
+2.4 Price Adjustment: Prices may be adjusted based on [Price Adjustment Basis]
+
+ARTICLE 3 - QUALITY CONTROL
+3.1 All products must meet Rwanda Standards Board quality standards
+3.2 Inspection at [Inspection Point] by [Inspecting Authority]
+3.3 Certificate of Analysis required for each shipment
+3.4 Compliance with maximum residue limits for pesticides
+
+ARTICLE 4 - SUSTAINABILITY REQUIREMENTS
+4.1 Supplier confirms sustainable farming practices
+4.2 Fair labor practices in accordance with Rwanda labor laws
+4.3 Environmental protection measures in place
+
+ARTICLE 5 - GOVERNING LAW
+5.1 This Agreement shall be governed by the laws of Rwanda
+5.2 Disputes shall be referred to the Commercial Court of Rwanda
+
+ARTICLE 6 - FORCE MAJEURE
+6.1 Includes: adverse weather conditions, crop diseases, export restrictions
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+SUPPLIER: _________________________
+For [Supplier Name]
+Title: [Supplier Signatory Title]
+
+BUYER: _________________________
+For [Buyer Name]
+Title: [Buyer Signatory Title]
+
+WITNESS: _________________________
+Name: [Witness Name]
+DATE: [Date]`,
+  fields: [
+    { key: 'Date', label: 'Agreement Date', type: 'date', required: true },
+    { key: 'Supplier Name', label: 'Supplier Name/Cooperative', type: 'text', required: true },
+    { key: 'Supplier Registration Number', label: 'Supplier Registration Number', type: 'text', required: true },
+    { key: 'Supplier Address', label: 'Supplier Address', type: 'text', required: true },
+    { key: 'Buyer Name', label: 'Buyer Company Name', type: 'text', required: true },
+    { key: 'Buyer Country', label: 'Buyer Country', type: 'text', required: true },
+    { key: 'Buyer Address', label: 'Buyer Address', type: 'text', required: true },
+    { key: 'Agricultural Product', label: 'Agricultural Product', type: 'select', required: true, options: ['Coffee', 'Tea', 'Pyrethrum', 'Horticulture', 'Beans', 'Maize', 'Fruits', 'Vegetables'] },
+    { key: 'Product Variety', label: 'Product Variety', type: 'text', required: true },
+    { key: 'Quality Grade', label: 'Quality Grade', type: 'select', required: true, options: ['Grade A', 'Grade B', 'Grade C', 'Export Quality', 'Local Market'] },
+    { key: 'Organic Status', label: 'Organic Certification', type: 'select', required: true, options: ['Certified Organic', 'In Conversion', 'Conventional', 'Not Specified'] },
+    { key: 'Packaging Requirements', label: 'Packaging Requirements', type: 'textarea', required: true },
+    { key: 'Total Quantity', label: 'Total Quantity', type: 'number', required: true },
+    { key: 'Units', label: 'Units', type: 'select', required: true, options: ['Kilograms', 'Metric Tons', 'Bags', 'Crates', 'Boxes'] },
+    { key: 'Delivery Schedule', label: 'Delivery Schedule', type: 'textarea', required: true },
+    { key: 'Price per Unit', label: 'Price per Unit (RWF)', type: 'number', required: true },
+    { key: 'Unit', label: 'Price Unit', type: 'text', required: true, placeholder: 'e.g., per kg, per ton' },
+    { key: 'Price Adjustment Basis', label: 'Price Adjustment Basis', type: 'textarea', required: false },
+    { key: 'Inspection Point', label: 'Quality Inspection Point', type: 'text', required: true },
+    { key: 'Inspecting Authority', label: 'Inspecting Authority', type: 'text', required: true },
+    { key: 'Supplier Signatory Title', label: 'Supplier Signatory Title', type: 'text', required: true },
+    { key: 'Buyer Signatory Title', label: 'Buyer Signatory Title', type: 'text', required: true },
+    { key: 'Witness Name', label: 'Witness Name', type: 'text', required: false }
+  ],
+  isOfficial: true,
+  downloads: 0,
+  rating: 4.6,
+  createdAt: new Date().toISOString()
+},
+{
+  id: 'china-africa-import-russia',
+  title: 'China-Russia-Africa Tripartite Trade Agreement',
+  type: 'import-export',
+  description: 'Tripartite trade agreement for goods transiting between China, Russia, and African markets',
+  jurisdiction: 'CN', // China as primary jurisdiction
+  content: `CHINA-RUSSIA-AFRICA TRIPARTITE TRADE AGREEMENT
+
+This Tripartite Trade Agreement ("Agreement") is made on [Date] between:
+
+[Chinese Company Name], a company registered in China with address at [Chinese Company Address] ("Chinese Party")
+
+AND
+
+[Russian Company Name], a company registered in Russia with address at [Russian Company Address] ("Russian Party") 
+
+AND
+
+[African Company Name], a company registered in [African Country] with address at [African Company Address] ("African Party")
+
+RECITALS:
+A. Chinese Party manufactures [Product Description]
+B. Russian Party provides logistics and transit services
+C. African Party distributes products in African markets
+D. Parties wish to establish tripartite trade relationship
+
+ARTICLE 1 - ROLES AND RESPONSIBILITIES
+1.1 Chinese Party: Manufacture and quality control of products
+1.2 Russian Party: Logistics, customs clearance, and transit through Russia
+1.3 African Party: Market distribution, after-sales service, and compliance with African regulations
+
+ARTICLE 2 - PRODUCT SPECIFICATIONS
+2.1 Product: [Product Description]
+2.2 Technical Standards: Compliant with [Chinese Standards], [Russian Standards], and [African Standards]
+2.3 Quantity: [Annual Quantity] units per year
+2.4 Packaging: Trilingual packaging (Chinese, Russian, English/French)
+
+ARTICLE 3 - PAYMENT TERMS
+3.1 Currency: [Primary Currency] for inter-party settlements
+3.2 Payment Method: [Payment Method]
+3.3 Payment Schedule: [Payment Schedule]
+
+ARTICLE 4 - LOGISTICS AND TRANSIT
+4.1 Shipping Route: China → Russia → [African Destination]
+4.2 Russian Transit Time: Maximum [Transit Days] days
+4.3 Customs Clearance: Each party responsible for own country customs
+4.4 Insurance: [Insurance Coverage] throughout transit
+
+ARTICLE 5 - COMPLIANCE
+5.1 Chinese Party: Comply with China export control regulations
+5.2 Russian Party: Comply with Russian transit and customs laws
+5.3 African Party: Comply with [African Country] import regulations and product standards
+
+ARTICLE 6 - GOVERNING LAW AND DISPUTES
+6.1 Primary Governing Law: [Primary Governing Law]
+6.2 Dispute Resolution: [Dispute Resolution Method]
+6.3 Language: English (with Chinese and Russian translations)
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+CHINESE PARTY: _________________________
+For [Chinese Company Name]
+Title: [Chinese Signatory Title]
+
+RUSSIAN PARTY: _________________________
+For [Russian Company Name]
+Title: [Russian Signatory Title]
+
+AFRICAN PARTY: _________________________
+For [African Company Name]
+Title: [African Signatory Title]
+
+DATE: [Date]`,
+  fields: [
+    { key: 'Date', label: 'Agreement Date', type: 'date', required: true },
+    { key: 'Chinese Company Name', label: 'Chinese Company Name', type: 'text', required: true },
+    { key: 'Chinese Company Address', label: 'Chinese Company Address', type: 'text', required: true },
+    { key: 'Russian Company Name', label: 'Russian Company Name', type: 'text', required: true },
+    { key: 'Russian Company Address', label: 'Russian Company Address', type: 'text', required: true },
+    { key: 'African Company Name', label: 'African Company Name', type: 'text', required: true },
+    { key: 'African Country', label: 'African Country', type: 'text', required: true },
+    { key: 'African Company Address', label: 'African Company Address', type: 'text', required: true },
+    { key: 'Product Description', label: 'Product Description', type: 'textarea', required: true },
+    { key: 'Chinese Standards', label: 'Chinese Technical Standards', type: 'text', required: true },
+    { key: 'Russian Standards', label: 'Russian Technical Standards', type: 'text', required: true },
+    { key: 'African Standards', label: 'African Technical Standards', type: 'text', required: true },
+    { key: 'Annual Quantity', label: 'Annual Quantity (units)', type: 'number', required: true },
+    { key: 'Primary Currency', label: 'Settlement Currency', type: 'select', required: true, options: ['USD', 'EUR', 'CNY', 'RUB'] },
+    { key: 'Payment Method', label: 'Payment Method', type: 'select', required: true, options: ['Letter of Credit', 'Bank Transfer', 'Escrow', 'Advance Payment'] },
+    { key: 'Payment Schedule', label: 'Payment Schedule', type: 'textarea', required: true },
+    { key: 'African Destination', label: 'Final African Destination', type: 'text', required: true },
+    { key: 'Transit Days', label: 'Maximum Russian Transit Days', type: 'number', required: true },
+    { key: 'Insurance Coverage', label: 'Insurance Coverage', type: 'textarea', required: true },
+    { key: 'Primary Governing Law', label: 'Primary Governing Law', type: 'select', required: true, options: ['Chinese Law', 'Russian Law', 'English Law', 'Swiss Law'] },
+    { key: 'Dispute Resolution Method', label: 'Dispute Resolution', type: 'select', required: true, options: ['ICC Arbitration', 'CIETAC', 'Russian Arbitration', 'Mediation'] },
+    { key: 'Chinese Signatory Title', label: 'Chinese Signatory Title', type: 'text', required: true },
+    { key: 'Russian Signatory Title', label: 'Russian Signatory Title', type: 'text', required: true },
+    { key: 'African Signatory Title', label: 'African Signatory Title', type: 'text', required: true }
+  ],
+  isOfficial: true,
+  downloads: 0,
+  rating: 4.8,
+  createdAt: new Date().toISOString()
+}
     ]
   }
 

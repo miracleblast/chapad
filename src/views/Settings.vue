@@ -226,7 +226,7 @@
             <Icon icon="noto:bird" class="text-4xl text-chapa-purple-500" />
           </div>
           <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 font-cal">ChapaDocs</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-300 font-poppins mb-1">Official business documents made in Africa</p>
+          <p class="text-sm text-gray-600 dark:text-gray-300 font-poppins mb-1">No snake deals - only clean contracts !"</p>
           <p class="text-sm text-gray-600 dark:text-gray-300 font-poppins mb-1">Version 1.0.0</p>
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 font-poppins">
             {{ $t('appDescription') }}

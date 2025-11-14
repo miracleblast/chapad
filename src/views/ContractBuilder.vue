@@ -39,25 +39,16 @@
     </div>
 
     <!-- Main Form Content -->
-    <div class="container mx-auto px-4 py-6 pb-24">
+    <div class="container mx-auto px-4 py-6">
       <!-- Step 1: Contract Basics -->
       <div v-if="currentStep === 1" class="space-y-6">
-        <!-- Validation Summary - MOVED TO TOP -->
+        <!-- Validation Summary -->
         <div v-if="showErrors && !isStep1Valid" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <div class="flex items-start space-x-3">
             <Icon icon="material-symbols:error" class="text-red-500 text-xl mt-0.5 flex-shrink-0" />
             <div>
               <h4 class="font-semibold text-red-800 dark:text-red-300 text-sm">Please complete all required fields</h4>
               <p class="text-red-700 dark:text-red-400 text-xs mt-1">Fill in the missing information above to continue</p>
-              <!-- Detailed error list -->
-              <ul class="text-xs text-red-600 dark:text-red-400 mt-2 space-y-1">
-                <li v-if="!contractData.title?.trim()">• Contract title is required</li>
-                <li v-if="!contractData.parties.firstParty.name?.trim()">• First party name is required</li>
-                <li v-if="!contractData.parties.secondParty.name?.trim()">• Second party name is required</li>
-                <li v-if="!contractData.jurisdiction.firstCountry">• Your country is required</li>
-                <li v-if="!contractData.jurisdiction.secondCountry">• Their country is required</li>
-                <li v-if="!contractData.jurisdiction.currency">• Currency is required</li>
-              </ul>
             </div>
           </div>
         </div>
@@ -75,9 +66,6 @@
             :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.title?.trim() }"
             @input="autoGenerateSlug"
           >
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Give your contract a clear, descriptive name
-          </p>
         </div>
 
         <!-- Parties Information -->
@@ -86,7 +74,6 @@
             Parties Involved
           </h3>
           
-          <!-- First Party -->
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
@@ -116,189 +103,514 @@
           </div>
         </div>
 
-        <!-- Jurisdiction -->
-        <div class="chapa-glass-card p-5">
-          <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
-            Jurisdiction & Currency
-          </h3>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Your Country -->
-            <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
-                Your Country *
-              </label>
-              <select 
-                v-model="contractData.jurisdiction.firstCountry"
-                class="input-modern w-full"
-                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.firstCountry }"
-              >
-                <option value="">Select country</option>
-                <option 
-                  v-for="country in targetCountries.africa" 
-                  :key="'first-' + country.code"
-                  :value="country.code"
-                >
-                  {{ country.name }}
-                </option>
-                <option disabled>───</option>
-                <option 
-                  v-for="country in targetCountries.asia" 
-                  :key="'first-' + country.code"
-                  :value="country.code"
-                >
-                  {{ country.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Their Country -->
-            <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
-                Their Country *
-              </label>
-              <select 
-                v-model="contractData.jurisdiction.secondCountry"
-                class="input-modern w-full"
-                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.secondCountry }"
-              >
-                <option value="">Select country</option>
-                <option 
-                  v-for="country in targetCountries.africa" 
-                  :key="'second-' + country.code"
-                  :value="country.code"
-                >
-                  {{ country.name }}
-                </option>
-                <option disabled>───</option>
-                <option 
-                  v-for="country in targetCountries.asia" 
-                  :key="'second-' + country.code"
-                  :value="country.code"
-                >
-                  {{ country.name }}
-                </option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Currency -->
-          <div class="mt-4">
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
-              Contract Currency *
-            </label>
-            <select 
-              v-model="contractData.jurisdiction.currency"
-              class="input-modern w-full"
-              :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.currency }"
+<!-- Jurisdiction - COMPLEX VERSION WITH REGIONAL GROUPING -->
+<div class="chapa-glass-card p-5">
+  <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
+    Jurisdiction & Currency
+  </h3>
+  
+  <!-- Countries Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Your Country -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+        Your Country *
+      </label>
+      <select 
+        v-model="contractData.jurisdiction.firstCountry"
+        class="input-modern w-full"
+        :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.firstCountry }"
+      >
+        <option value="">Select your country</option>
+        
+        <!-- Africa Region -->
+        <optgroup label="Africa">
+          <!-- North Africa -->
+          <optgroup label="North Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['DZ','EG','LY','MA','MR','TN','EH'].includes(c.code))" 
+              :key="'first-' + country.code" 
+              :value="country.code"
             >
-              <option value="">Select currency</option>
-              <option 
-                v-for="currency in availableCurrencies" 
-                :key="currency.code"
-                :value="currency.code"
-              >
-                {{ currency.symbol }} {{ currency.name }} ({{ currency.code }})
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Manual Validation Button -->
-        <div class="flex justify-center mt-6">
-          <button 
-            @click="validateStep1"
-            class="btn-accent flex items-center space-x-2 px-6 py-2"
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- West Africa -->
+          <optgroup label="West Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['BJ','BF','CV','CI','GM','GH','GN','GW','LR','ML','NE','NG','SN','SL','TG'].includes(c.code))" 
+              :key="'first-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- Central Africa -->
+          <optgroup label="Central Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['AO','CM','CF','TD','CG','CD','GQ','GA','ST'].includes(c.code))" 
+              :key="'first-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- East Africa -->
+          <optgroup label="East Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['BI','KM','DJ','ER','ET','KE','MG','MW','MU','YT','MZ','RW','RE','SC','SO','SS','SD','TZ','UG','ZM','ZW'].includes(c.code))" 
+              :key="'first-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- Southern Africa -->
+          <optgroup label="Southern Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['BW','LS','NA','ZA','SZ'].includes(c.code))" 
+              :key="'first-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+        </optgroup>
+        
+        <!-- Asia Region -->
+        <optgroup label="Asia">
+          <option 
+            v-for="country in targetCountries.asia" 
+            :key="'first-' + country.code" 
+            :value="country.code"
           >
-            <Icon icon="material-symbols:check" class="text-lg" />
-            <span>Validate Step 1</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 2: Contract Details -->
-      <div v-if="currentStep === 2" class="space-y-6">
-        <div class="text-center py-8">
-          <Icon icon="material-symbols:check-circle" class="text-4xl text-green-500 mb-3" />
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2 font-poppins">
-            Step 2: Contract Details
-          </h3>
-          <p class="text-gray-600 dark:text-gray-300 text-sm">
-            This step is optional for now. You can proceed to terms.
-          </p>
-        </div>
-      </div>
-
-      <!-- Step 3: Terms & Conditions -->
-      <div v-if="currentStep === 3" class="space-y-6">
-        <!-- Validation Summary for Step 3 -->
-        <div v-if="showErrors && !isStep3Valid" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <div class="flex items-start space-x-3">
-            <Icon icon="material-symbols:error" class="text-red-500 text-xl mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 class="font-semibold text-red-800 dark:text-red-300 text-sm">Terms are required</h4>
-              <p class="text-red-700 dark:text-red-400 text-xs mt-1">Please add some terms and conditions to continue</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="chapa-glass-card p-5">
-          <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
-            Terms & Conditions *
-          </h3>
-          <textarea 
-            v-model="contractData.terms"
-            rows="8"
-            placeholder="Enter the specific terms and conditions of this agreement..."
-            class="input-modern w-full resize-none"
-            :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.terms?.trim() }"
-          ></textarea>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Describe the rights, responsibilities, and obligations of both parties
-          </p>
-        </div>
-
-        <!-- Manual Validation Button for Step 3 -->
-        <div class="flex justify-center mt-6">
-          <button 
-            @click="validateStep3"
-            class="btn-accent flex items-center space-x-2 px-6 py-2"
-          >
-            <Icon icon="material-symbols:check" class="text-lg" />
-            <span>Validate Terms</span>
-          </button>
-        </div>
-      </div>
+            {{ country.name }}
+          </option>
+        </optgroup>
+      </select>
     </div>
 
-    <!-- Navigation Footer - COMPACT -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3">
-      <div class="container mx-auto">
-        <div class="flex space-x-2">
-          <button 
-            v-if="currentStep > 1"
-            @click="previousStep"
-            class="btn-secondary flex-1 flex items-center justify-center space-x-1 py-2 text-sm"
+    <!-- Their Country -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+        Their Country *
+      </label>
+      <select 
+        v-model="contractData.jurisdiction.secondCountry"
+        class="input-modern w-full"
+        :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.secondCountry }"
+      >
+        <option value="">Select their country</option>
+        
+        <!-- Africa Region -->
+        <optgroup label="Africa">
+          <!-- North Africa -->
+          <optgroup label="North Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['DZ','EG','LY','MA','MR','TN','EH'].includes(c.code))" 
+              :key="'second-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- West Africa -->
+          <optgroup label="West Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['BJ','BF','CV','CI','GM','GH','GN','GW','LR','ML','NE','NG','SN','SL','TG'].includes(c.code))" 
+              :key="'second-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- Central Africa -->
+          <optgroup label="Central Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['AO','CM','CF','TD','CG','CD','GQ','GA','ST'].includes(c.code))" 
+              :key="'second-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- East Africa -->
+          <optgroup label="East Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['BI','KM','DJ','ER','ET','KE','MG','MW','MU','YT','MZ','RW','RE','SC','SO','SS','SD','TZ','UG','ZM','ZW'].includes(c.code))" 
+              :key="'second-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+          
+          <!-- Southern Africa -->
+          <optgroup label="Southern Africa">
+            <option 
+              v-for="country in targetCountries.africa.filter(c => ['BW','LS','NA','ZA','SZ'].includes(c.code))" 
+              :key="'second-' + country.code" 
+              :value="country.code"
+            >
+              {{ country.name }}
+            </option>
+          </optgroup>
+        </optgroup>
+        
+        <!-- Asia Region -->
+        <optgroup label="Asia">
+          <option 
+            v-for="country in targetCountries.asia" 
+            :key="'second-' + country.code" 
+            :value="country.code"
           >
-            <Icon icon="material-symbols:arrow-back" class="text-base" />
-            <span class="font-poppins font-medium">Back</span>
+            {{ country.name }}
+          </option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <!-- Currency -->
+  <div class="mt-4">
+    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+      Contract Currency *
+    </label>
+    <select 
+      v-model="contractData.jurisdiction.currency"
+      class="input-modern w-full"
+      :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.currency }"
+    >
+      <option value="">Select currency</option>
+      <option v-for="currency in availableCurrencies" :key="currency.code" :value="currency.code">
+        {{ currency.symbol }} {{ currency.name }} ({{ currency.code }})
+      </option>
+    </select>
+  </div>
+</div>
+<!-- Jurisdiction - MOBILE FRIENDLY BUT BEAUTIFUL -->
+<div class="chapa-glass-card p-5">
+  <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
+    Jurisdiction & Currency
+  </h3>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Your Country -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+        Your Country *
+      </label>
+      <select 
+        v-model="contractData.jurisdiction.firstCountry"
+        class="input-modern w-full"
+        :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.firstCountry }"
+      >
+        <option value="">Select your country</option>
+        
+        <!-- Africa Countries -->
+        <optgroup label="🌍 Africa">
+          <option 
+            v-for="country in targetCountries.africa" 
+            :key="'first-' + country.code" 
+            :value="country.code"
+          >
+            {{ country.name }}
+          </option>
+        </optgroup>
+        
+        <!-- Asia Countries -->
+        <optgroup label="🌏 Asia">
+          <option 
+            v-for="country in targetCountries.asia" 
+            :key="'first-' + country.code" 
+            :value="country.code"
+          >
+            {{ country.name }}
+          </option>
+        </optgroup>
+      </select>
+    </div>
+
+    <!-- Their Country -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+        Their Country *
+      </label>
+      <select 
+        v-model="contractData.jurisdiction.secondCountry"
+        class="input-modern w-full"
+        :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.secondCountry }"
+      >
+        <option value="">Select their country</option>
+        
+        <!-- Africa Countries -->
+        <optgroup label="🌍 Africa">
+          <option 
+            v-for="country in targetCountries.africa" 
+            :key="'second-' + country.code" 
+            :value="country.code"
+          >
+            {{ country.name }}
+          </option>
+        </optgroup>
+        
+        <!-- Asia Countries -->
+        <optgroup label="🌏 Asia">
+          <option 
+            v-for="country in targetCountries.asia" 
+            :key="'second-' + country.code" 
+            :value="country.code"
+          >
+            {{ country.name }}
+          </option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <!-- Currency -->
+  <div class="mt-4">
+    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+      Contract Currency *
+    </label>
+    <select 
+      v-model="contractData.jurisdiction.currency"
+      class="input-modern w-full"
+      :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.currency }"
+    >
+      <option value="">Select currency</option>
+      <option v-for="currency in availableCurrencies" :key="currency.code" :value="currency.code">
+        {{ currency.symbol }} {{ currency.name }} ({{ currency.code }})
+      </option>
+    </select>
+  </div>
+</div>
+        <!-- Step 1 Navigation Buttons -->
+        <div class="flex justify-center space-x-4 mt-8">
+          <button @click="goBack" class="btn-secondary flex items-center space-x-2 px-6 py-3">
+            <Icon icon="material-symbols:arrow-back" class="text-lg" />
+            <span>Back</span>
           </button>
           
           <button 
             @click="nextStep"
-            :disabled="(currentStep === 1 && !isStep1Valid) || (currentStep === 3 && !isStep3Valid)"
-            class="flex-1 flex items-center justify-center space-x-1 py-2 text-sm font-poppins font-medium transition-all duration-300"
-            :class="getNextButtonClass()"
+            :disabled="!isStep1Valid"
+            class="btn-accent flex items-center space-x-2 px-6 py-3"
+            :class="{ 'opacity-50 cursor-not-allowed': !isStep1Valid }"
           >
-            <span>{{ getNextButtonText() }}</span>
-            <Icon 
-              :icon="currentStep === totalSteps ? 'material-symbols:check' : 'material-symbols:arrow-forward'" 
-              class="text-base" 
-            />
+            <span>Continue to Details</span>
+            <Icon icon="material-symbols:arrow-forward" class="text-lg" />
           </button>
         </div>
       </div>
+
+     <!-- Step 2: Contract Details -->
+<div v-if="currentStep === 2" class="space-y-6">
+  <!-- Template Selection -->
+  <div v-if="showTemplateSelector" class="chapa-glass-card p-5">
+    <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
+      Choose Detail Level
+    </h3>
+    
+    <div class="grid grid-cols-2 gap-3">
+      <button
+        v-for="option in templateOptions"
+        :key="option.id"
+        @click="selectTemplateType(option.id)"
+        class="p-4 rounded-xl border-2 transition-all text-center"
+        :class="selectedTemplateType === option.id
+          ? 'border-chapa-purple-500 bg-chapa-purple-50 dark:bg-chapa-purple-900/20 text-chapa-purple-700 dark:text-chapa-purple-300'
+          : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-chapa-purple-300'"
+      >
+        <Icon :icon="option.icon" class="text-xl mb-2 mx-auto" />
+        <div class="text-xs font-medium">{{ option.name }}</div>
+      </button>
     </div>
+  </div>
+
+  <!-- Dynamic Form Fields -->
+  <div v-if="selectedTemplateType && selectedTemplateType !== 'none' && templateFields.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div>
+      <ContractForm
+        :templateFields="templateFields"
+        :initialData="templateFormData"
+        :showErrors="showErrors"
+        @update:modelValue="handleTemplateFormUpdate"
+        @validation="handleTemplateFormValidation"
+      />
+    </div>
+    
+    <!-- Live Preview -->
+    <ContractPreview
+      :contractData="contractData"
+      :templateData="templateFormData"
+    />
+  </div>
+
+  <!-- No Template Selected / Skip State -->
+  <div v-else-if="currentStep === 2 && (!selectedTemplateType || selectedTemplateType === 'none')" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="text-center py-8 chapa-glass-card">
+      <Icon icon="material-symbols:description" class="text-4xl text-gray-300 dark:text-gray-600 mb-3" />
+      <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2 font-poppins">
+        Contract Details
+      </h3>
+      <p class="text-gray-500 dark:text-gray-500 text-sm mb-6">
+        {{ selectedTemplateType === 'none' ? 'Skipping additional details.' : 'Choose a detail level to add specific contract information' }}
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+        <div class="text-center p-4">
+          <Icon icon="material-symbols:auto-awesome" class="text-2xl text-chapa-purple-500 mb-2" />
+          <p class="text-xs text-gray-600 dark:text-gray-400">Smart Templates</p>
+        </div>
+        <div class="text-center p-4">
+          <Icon icon="material-symbols:bolt" class="text-2xl text-chapa-orange-500 mb-2" />
+          <p class="text-xs text-gray-600 dark:text-gray-400">Quick Setup</p>
+        </div>
+        <div class="text-center p-4">
+          <Icon icon="material-symbols:verified" class="text-2xl text-green-500 mb-2" />
+          <p class="text-xs text-gray-600 dark:text-gray-400">Legally Sound</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Live Preview -->
+    <ContractPreview
+      :contractData="contractData"
+      :templateData="templateFormData"
+    />
+  </div>
+
+  <!-- Step 2 Navigation Buttons -->
+  <div class="flex justify-center space-x-4 mt-8">
+    <button @click="previousStep" class="btn-secondary flex items-center space-x-2 px-6 py-3">
+      <Icon icon="material-symbols:arrow-back" class="text-lg" />
+      <span>Back</span>
+    </button>
+    
+    <button 
+      @click="nextStep" 
+      class="btn-accent flex items-center space-x-2 px-6 py-3"
+      :class="{ 'opacity-50 cursor-not-allowed': selectedTemplateType && selectedTemplateType !== 'none' && !isStep2Valid }"
+      :disabled="selectedTemplateType && selectedTemplateType !== 'none' && !isStep2Valid"
+    >
+      <span>Continue to Terms</span>
+      <Icon icon="material-symbols:arrow-forward" class="text-lg" />
+    </button>
+  </div>
+</div>
+
+<!-- Step 3: Terms & Conditions -->
+<div v-if="currentStep === 3" class="space-y-6">
+  <!-- Validation Summary for Step 3 -->
+  <div v-if="showErrors && !isStep3Valid" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+    <div class="flex items-start space-x-3">
+      <Icon icon="material-symbols:error" class="text-red-500 text-xl mt-0.5 flex-shrink-0" />
+      <div>
+        <h4 class="font-semibold text-red-800 dark:text-red-300 text-sm">Terms are required</h4>
+        <p class="text-red-700 dark:text-red-400 text-xs mt-1">Please add some terms and conditions to continue</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Terms Input -->
+    <div class="space-y-4">
+      <div class="chapa-glass-card p-5">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
+          Terms & Conditions *
+        </h3>
+        <textarea 
+          v-model="contractData.terms"
+          rows="12"
+          placeholder="Enter the specific terms and conditions of this agreement..."
+          class="input-modern w-full resize-none"
+          :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.terms?.trim() }"
+        ></textarea>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          Describe the rights, responsibilities, and obligations of both parties
+        </p>
+        
+        <!-- Quick Template Buttons -->
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button 
+            v-for="template in quickTemplates" 
+            :key="template.id"
+            @click="insertTemplate(template.content)"
+            class="text-xs px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {{ template.name }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Template Data Preview -->
+      <div v-if="Object.keys(templateFormData).length > 0" class="chapa-glass-card p-5">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
+          Contract Details
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div 
+            v-for="(value, key) in templateFormData" 
+            :key="key"
+            class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700"
+          >
+            <span class="text-gray-600 dark:text-gray-400 capitalize">{{ key.replace(/([A-Z])/g, ' $1').trim() }}:</span>
+            <span class="text-gray-800 dark:text-white font-medium">{{ value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Live Preview -->
+    <ContractPreview
+      :contractData="contractData"
+      :templateData="templateFormData"
+    />
+  </div>
+
+  <!-- Legal Disclaimer -->
+  <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+    <div class="flex items-start space-x-3">
+      <Icon icon="material-symbols:warning" class="text-orange-500 text-xl mt-0.5 flex-shrink-0" />
+      <div>
+        <h4 class="font-semibold text-orange-800 dark:text-orange-300 text-sm">Legal Advisory</h4>
+        <p class="text-orange-700 dark:text-orange-400 text-xs mt-1">
+          This is a template document. Consult with qualified legal professionals in 
+          {{ getCountryName(contractData.jurisdiction.firstCountry) }} and 
+          {{ getCountryName(contractData.jurisdiction.secondCountry) }} 
+          to ensure compliance with local laws and regulations.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 Navigation Buttons -->
+  <div class="flex justify-center space-x-4 mt-8">
+    <button @click="previousStep" class="btn-secondary flex items-center space-x-2 px-6 py-3">
+      <Icon icon="material-symbols:arrow-back" class="text-lg" />
+      <span>Back</span>
+    </button>
+    
+    <button 
+      @click="nextStep"
+      :disabled="!isStep3Valid"
+      class="btn-accent flex items-center space-x-2 px-6 py-3"
+      :class="{ 'opacity-50 cursor-not-allowed': !isStep3Valid }"
+    >
+      <span>Create Contract</span>
+      <Icon icon="material-symbols:check" class="text-lg" />
+    </button>
+  </div>
+</div>
+   </div>
   </div>
 </template>
 
@@ -308,6 +620,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useContractStore } from '@/stores/contracts'
 import { TemplateEngine } from '@/utils/templates'
+import ContractForm from '@/components/contracts/ContractForm.vue' 
 
 const router = useRouter()
 const route = useRoute()
@@ -317,6 +630,12 @@ const contractStore = useContractStore()
 const currentStep = ref(1)
 const totalSteps = 3
 const showErrors = ref(false)
+
+// Template system for Step 2
+const showTemplateSelector = ref(true)
+const selectedTemplateType = ref('')
+const templateFormData = ref({})
+const isStep2Valid = ref(true)
 
 // Contract data - FIXED: Use proper structure that matches your Contract interface
 const contractData = ref({
@@ -347,37 +666,144 @@ const contractData = ref({
 // Available countries and currencies
 const targetCountries = {
   africa: [
-    { code: 'NG', name: 'Nigeria', currency: 'NGN' },
-    { code: 'KE', name: 'Kenya', currency: 'KES' },
-    { code: 'GH', name: 'Ghana', currency: 'GHS' },
-    { code: 'ZA', name: 'South Africa', currency: 'ZAR' },
+    // North Africa - Alphabetical
+    { code: 'DZ', name: 'Algeria', currency: 'DZD' },
     { code: 'EG', name: 'Egypt', currency: 'EGP' },
-    { code: 'TD', name: 'Chad', currency: 'XAF' }
+    { code: 'LY', name: 'Libya', currency: 'LYD' },
+    { code: 'MA', name: 'Morocco', currency: 'MAD' },
+    { code: 'MR', name: 'Mauritania', currency: 'MRU' },
+    { code: 'TN', name: 'Tunisia', currency: 'TND' },
+    { code: 'EH', name: 'Western Sahara', currency: 'MAD' },
+    
+    // West Africa - Alphabetical
+    { code: 'BJ', name: 'Benin', currency: 'XOF' },
+    { code: 'BF', name: 'Burkina Faso', currency: 'XOF' },
+    { code: 'CV', name: 'Cape Verde', currency: 'CVE' },
+    { code: 'CI', name: 'Ivory Coast', currency: 'XOF' },
+    { code: 'GM', name: 'Gambia', currency: 'GMD' },
+    { code: 'GH', name: 'Ghana', currency: 'GHS' },
+    { code: 'GN', name: 'Guinea', currency: 'GNF' },
+    { code: 'GW', name: 'Guinea-Bissau', currency: 'XOF' },
+    { code: 'LR', name: 'Liberia', currency: 'LRD' },
+    { code: 'ML', name: 'Mali', currency: 'XOF' },
+    { code: 'NE', name: 'Niger', currency: 'XOF' },
+    { code: 'NG', name: 'Nigeria', currency: 'NGN' },
+    { code: 'SN', name: 'Senegal', currency: 'XOF' },
+    { code: 'SL', name: 'Sierra Leone', currency: 'SLL' },
+    { code: 'TG', name: 'Togo', currency: 'XOF' },
+    
+    // Central Africa - Alphabetical
+    { code: 'AO', name: 'Angola', currency: 'AOA' },
+    { code: 'CM', name: 'Cameroon', currency: 'XAF' },
+    { code: 'CF', name: 'Central African Republic', currency: 'XAF' },
+    { code: 'TD', name: 'Chad', currency: 'XAF' },
+    { code: 'CG', name: 'Congo Republic', currency: 'XAF' },
+    { code: 'CD', name: 'DR Congo', currency: 'CDF' },
+    { code: 'GQ', name: 'Equatorial Guinea', currency: 'XAF' },
+    { code: 'GA', name: 'Gabon', currency: 'XAF' },
+    { code: 'ST', name: 'São Tomé and Príncipe', currency: 'STN' },
+    
+    // East Africa - Alphabetical
+    { code: 'BI', name: 'Burundi', currency: 'BIF' },
+    { code: 'KM', name: 'Comoros', currency: 'KMF' },
+    { code: 'DJ', name: 'Djibouti', currency: 'DJF' },
+    { code: 'ER', name: 'Eritrea', currency: 'ERN' },
+    { code: 'ET', name: 'Ethiopia', currency: 'ETB' },
+    { code: 'KE', name: 'Kenya', currency: 'KES' },
+    { code: 'MG', name: 'Madagascar', currency: 'MGA' },
+    { code: 'MW', name: 'Malawi', currency: 'MWK' },
+    { code: 'MU', name: 'Mauritius', currency: 'MUR' },
+    { code: 'YT', name: 'Mayotte', currency: 'EUR' },
+    { code: 'MZ', name: 'Mozambique', currency: 'MZN' },
+    { code: 'RW', name: 'Rwanda', currency: 'RWF' },
+    { code: 'RE', name: 'Réunion', currency: 'EUR' },
+    { code: 'SC', name: 'Seychelles', currency: 'SCR' },
+    { code: 'SO', name: 'Somalia', currency: 'SOS' },
+    { code: 'SS', name: 'South Sudan', currency: 'SSP' },
+    { code: 'SD', name: 'Sudan', currency: 'SDG' },
+    { code: 'TZ', name: 'Tanzania', currency: 'TZS' },
+    { code: 'UG', name: 'Uganda', currency: 'UGX' },
+    { code: 'ZM', name: 'Zambia', currency: 'ZMW' },
+    { code: 'ZW', name: 'Zimbabwe', currency: 'ZWL' },
+    
+    // Southern Africa - Alphabetical
+    { code: 'BW', name: 'Botswana', currency: 'BWP' },
+    { code: 'LS', name: 'Lesotho', currency: 'LSL' },
+    { code: 'NA', name: 'Namibia', currency: 'NAD' },
+    { code: 'ZA', name: 'South Africa', currency: 'ZAR' },
+    { code: 'SZ', name: 'Eswatini', currency: 'SZL' }
   ],
   asia: [
     { code: 'CN', name: 'China', currency: 'CNY' },
+    { code: 'HK', name: 'Hong Kong SAR', currency: 'HKD' },
     { code: 'IN', name: 'India', currency: 'INR' },
     { code: 'RU', name: 'Russia', currency: 'RUB' }
   ]
 }
 
 const availableCurrencies = [
+  // African Currencies
   { code: 'NGN', name: 'Naira', symbol: '₦' },
-  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
   { code: 'GHS', name: 'Ghana Cedi', symbol: 'GH₵' },
+  { code: 'XOF', name: 'CFA Franc BCEAO', symbol: 'CFA' },
+  { code: 'XAF', name: 'CFA Franc BEAC', symbol: 'FCFA' },
+  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
+  { code: 'TZS', name: 'Tanzanian Shilling', symbol: 'TSh' },
+  { code: 'UGX', name: 'Ugandan Shilling', symbol: 'USh' },
+  { code: 'RWF', name: 'Rwandan Franc', symbol: 'FRw' },
+  { code: 'BIF', name: 'Burundian Franc', symbol: 'FBu' },
+  { code: 'ETB', name: 'Ethiopian Birr', symbol: 'Br' },
+  { code: 'DJF', name: 'Djiboutian Franc', symbol: 'Fdj' },
+  { code: 'SOS', name: 'Somali Shilling', symbol: 'Sh.So.' },
+  { code: 'SSP', name: 'South Sudanese Pound', symbol: '£' },
+  { code: 'SDG', name: 'Sudanese Pound', symbol: '£SD' },
   { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
-  { code: 'XAF', name: 'CFA Franc', symbol: 'FCFA' },
+  { code: 'BWP', name: 'Botswana Pula', symbol: 'P' },
+  { code: 'NAD', name: 'Namibian Dollar', symbol: 'N$' },
+  { code: 'ZMW', name: 'Zambian Kwacha', symbol: 'ZK' },
+  { code: 'ZWL', name: 'Zimbabwean Dollar', symbol: 'Z$' },
+  { code: 'MWK', name: 'Malawian Kwacha', symbol: 'MK' },
+  { code: 'MZN', name: 'Mozambican Metical', symbol: 'MT' },
+  { code: 'AOA', name: 'Angolan Kwanza', symbol: 'Kz' },
+  { code: 'SZL', name: 'Swazi Lilangeni', symbol: 'L' },
+  { code: 'LSL', name: 'Lesotho Loti', symbol: 'L' },
+  { code: 'MGA', name: 'Malagasy Ariary', symbol: 'Ar' },
+  { code: 'MUR', name: 'Mauritian Rupee', symbol: '₨' },
+  { code: 'SCR', name: 'Seychellois Rupee', symbol: '₨' },
+  { code: 'KMF', name: 'Comorian Franc', symbol: 'CF' },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£' },
+  { code: 'MAD', name: 'Moroccan Dirham', symbol: 'DH' },
+  { code: 'DZD', name: 'Algerian Dinar', symbol: 'DA' },
+  { code: 'TND', name: 'Tunisian Dinar', symbol: 'DT' },
+  { code: 'LYD', name: 'Libyan Dinar', symbol: 'LD' },
+  { code: 'MRU', name: 'Mauritanian Ouguiya', symbol: 'UM' },
+  
+  // Additional African
+  { code: 'GNF', name: 'Guinean Franc', symbol: 'FG' },
+  { code: 'LRD', name: 'Liberian Dollar', symbol: 'L$' },
+  { code: 'SLL', name: 'Sierra Leonean Leone', symbol: 'Le' },
+  { code: 'CDF', name: 'Congolese Franc', symbol: 'FC' },
+  { code: 'ERN', name: 'Eritrean Nakfa', symbol: 'Nfk' },
+  
+  // Asian Currencies
   { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
+  { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HKD$' },
   { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
-  { code: 'RUB', name: 'Russian Ruble', symbol: '₽' }
+  { code: 'RUB', name: 'Russian Ruble', symbol: '₽' },
+  
+  // International
+  { code: 'USD', name: 'US Dollar', symbol: '$' }
 ]
-
-// Contract types
+// Contract types - EXPANDED for Africa + Asia trade
 const contractTypes = {
   debt: { id: 'debt', name: 'Debt Agreement', icon: 'material-symbols:money' },
   sales: { id: 'sales', name: 'Sales Agreement', icon: 'material-symbols:shopping-cart' },
   service: { id: 'service', name: 'Service Contract', icon: 'material-symbols:design-services' },
   partnership: { id: 'partnership', name: 'Partnership Agreement', icon: 'material-symbols:handshake' },
+  'import-export': { id: 'import-export', name: 'Import/Export Agreement', icon: 'material-symbols:airport-shuttle' },
+  employment: { id: 'employment', name: 'Employment Contract', icon: 'material-symbols:work' },
+  nda: { id: 'nda', name: 'Confidentiality Agreement', icon: 'material-symbols:lock' },
+  lease: { id: 'lease', name: 'Lease Agreement', icon: 'material-symbols:real-estate-agent' },
   custom: { id: 'custom', name: 'Custom Contract', icon: 'material-symbols:edit-document' }
 }
 
@@ -451,16 +877,12 @@ const goBack = () => {
 const nextStep = () => {
   console.log('Next step clicked - Current step:', currentStep.value)
   
-  // Validate current step before proceeding
-  if (currentStep.value === 1 && !isStep1Valid.value) {
-    console.log('❌ Step 1 validation failed - showing errors')
-    showErrors.value = true
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (currentStep.value === 1) {
+    validateAndProceed()
     return
   }
 
   if (currentStep.value === 3 && !isStep3Valid.value) {
-    console.log('❌ Step 3 validation failed - showing errors')
     showErrors.value = true
     return
   }
@@ -468,7 +890,14 @@ const nextStep = () => {
   if (currentStep.value < totalSteps) {
     currentStep.value++
     showErrors.value = false
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    
+    // Mobile scroll to top
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }, 100)
+    }
+    
     console.log('✅ Moving to step:', currentStep.value)
   } else {
     createContract()
@@ -529,30 +958,6 @@ const saveDraft = () => {
   localStorage.setItem('contractDraft', JSON.stringify(contractData.value))
   alert('Draft saved successfully!')
 }
-
-const createContract = async () => {
-  console.log('Creating contract:', contractData.value)
-  
-  try {
-    // Set creation date
-    contractData.value.createdAt = new Date().toISOString()
-    contractData.value.updatedAt = new Date().toISOString()
-    
-    // Create contract using the store
-    const newContract = await contractStore.createContract(contractData.value)
-    console.log('Contract created successfully:', newContract)
-    
-    // Navigate to signature page with the new contract ID
-    router.push({
-      path: '/signature',
-      query: { contractId: newContract.id }
-    })
-  } catch (error) {
-    console.error('Failed to create contract:', error)
-    alert('Failed to create contract. Please try again.')
-  }
-}
-
 // Watch for step changes to debug
 watch(currentStep, (newStep) => {
   console.log('🔍 Step changed to:', newStep)
@@ -624,6 +1029,217 @@ const loadSpecificTemplate = (templateId: string) => {
     contractData.value.terms = `This is a ${contractData.value.type} agreement template. Fill in the details below.`
   }
 }
+
+const templateOptions = [
+  { id: 'quick', name: 'Quick Setup', icon: 'material-symbols:bolt' },
+  { id: 'detailed', name: 'Detailed', icon: 'material-symbols:description' },
+  { id: 'custom', name: 'Custom Fields', icon: 'material-symbols:edit' },
+  { id: 'none', name: 'Skip Details', icon: 'material-symbols:skip-next' }
+]
+// Template fields based on contract type
+const templateFields = computed(() => {
+  if (!selectedTemplateType.value || !contractData.value.type) return []
+
+  const baseFields: any[] = []
+  
+  switch (contractData.value.type) {
+    case 'debt':
+      baseFields.push(
+        { key: 'loanAmount', label: 'Loan Amount', type: 'number', required: true, placeholder: 'Enter loan amount' },
+        { key: 'interestRate', label: 'Interest Rate (%)', type: 'number', required: false, placeholder: 'Annual interest rate' },
+        { key: 'repaymentMonths', label: 'Repayment Period (Months)', type: 'number', required: true, placeholder: 'Number of months' },
+        { key: 'paymentSchedule', label: 'Payment Schedule', type: 'select', required: true, options: ['Monthly', 'Quarterly', 'Yearly', 'Custom'] },
+        { key: 'collateral', label: 'Collateral Description', type: 'textarea', required: false, placeholder: 'Describe any collateral' }
+      )
+      break
+
+    case 'sales':
+      baseFields.push(
+        { key: 'goodsDescription', label: 'Goods Description', type: 'textarea', required: true, placeholder: 'Detailed description of goods' },
+        { key: 'quantity', label: 'Quantity', type: 'number', required: true, placeholder: 'Number of units' },
+        { key: 'unitPrice', label: 'Unit Price', type: 'number', required: true, placeholder: 'Price per unit' },
+        { key: 'deliveryDate', label: 'Delivery Date', type: 'date', required: true },
+        { key: 'deliveryTerms', label: 'Delivery Terms', type: 'select', required: true, options: ['FOB', 'CIF', 'EXW', 'DAP'] },
+        { key: 'warrantyPeriod', label: 'Warranty Period (Months)', type: 'number', required: false, placeholder: 'Warranty in months' }
+      )
+      break
+
+    case 'mining':
+      baseFields.push(
+        { key: 'mineralType', label: 'Mineral Type', type: 'select', required: true, options: ['Gold', 'Diamond', 'Copper', 'Cobalt', 'Bauxite', 'Manganese', 'Other'] },
+        { key: 'miningArea', label: 'Mining Area Coordinates', type: 'textarea', required: true, placeholder: 'GPS coordinates of mining area' },
+        { key: 'licenseTerm', label: 'License Term (Years)', type: 'number', required: true },
+        { key: 'royaltyRate', label: 'Royalty Rate (%)', type: 'number', required: true },
+        { key: 'environmentalBond', label: 'Environmental Bond Amount', type: 'number', required: true },
+        { key: 'localEmployment', label: 'Local Employment Percentage (%)', type: 'number', required: true }
+      )
+      break
+
+    case 'commodity':
+      baseFields.push(
+        { key: 'commodityType', label: 'Commodity Type', type: 'select', required: true, options: ['Cocoa', 'Coffee', 'Cotton', 'Palm Oil', 'Cashew', 'Gold', 'Copper', 'Crude Oil'] },
+        { key: 'qualityStandards', label: 'Quality Standards', type: 'textarea', required: true },
+        { key: 'quantity', label: 'Quantity', type: 'number', required: true },
+        { key: 'units', label: 'Units', type: 'select', required: true, options: ['Metric Tons', 'Barrels', 'Kilograms', 'Bags'] },
+        { key: 'unitPrice', label: 'Unit Price', type: 'number', required: true },
+        { key: 'priceBasis', label: 'Price Basis', type: 'select', required: true, options: ['FOB', 'CIF', 'CFR', 'EXW'] },
+        { key: 'deliveryPeriod', label: 'Delivery Period', type: 'text', required: true }
+      )
+      break
+
+    case 'agriculture':
+      baseFields.push(
+        { key: 'agriculturalProduct', label: 'Agricultural Product', type: 'select', required: true, options: ['Coffee', 'Tea', 'Cocoa', 'Fruits', 'Vegetables', 'Grains', 'Livestock'] },
+        { key: 'productVariety', label: 'Product Variety', type: 'text', required: true },
+        { key: 'qualityGrade', label: 'Quality Grade', type: 'select', required: true, options: ['Grade A', 'Grade B', 'Export Quality', 'Local Market'] },
+        { key: 'organicStatus', label: 'Organic Certification', type: 'select', required: true, options: ['Certified Organic', 'In Conversion', 'Conventional'] },
+        { key: 'totalQuantity', label: 'Total Quantity', type: 'number', required: true },
+        { key: 'deliverySchedule', label: 'Delivery Schedule', type: 'textarea', required: true }
+      )
+      break
+
+    case 'import-export':
+      baseFields.push(
+        { key: 'productDescription', label: 'Product Description', type: 'textarea', required: true },
+        { key: 'quantity', label: 'Quantity', type: 'number', required: true },
+        { key: 'unitPrice', label: 'Unit Price (USD)', type: 'number', required: true },
+        { key: 'incoterms', label: 'Incoterms', type: 'select', required: true, options: ['EXW', 'FCA', 'FOB', 'CIF', 'CFR', 'DAP', 'DDP'] },
+        { key: 'originCountry', label: 'Country of Origin', type: 'text', required: true },
+        { key: 'destinationCountry', label: 'Destination Country', type: 'text', required: true },
+        { key: 'shipmentDate', label: 'Latest Shipment Date', type: 'date', required: true },
+        { key: 'paymentMethod', label: 'Payment Method', type: 'select', required: true, options: ['Letter of Credit', 'Telegraphic Transfer', 'Document Against Acceptance', 'Advance Payment'] }
+      )
+      break
+  }
+
+  return baseFields
+})
+
+const selectTemplateType = (type: string) => {
+  selectedTemplateType.value = type
+  if (type === 'none') {
+    showTemplateSelector.value = false
+    isStep2Valid.value = true
+  } else {
+    showTemplateSelector.value = false
+  }
+}
+
+const handleTemplateFormUpdate = (data: any) => {
+  templateFormData.value = data
+  // Store template data in contract data
+  contractData.value.clauses = Object.entries(data)
+    .filter(([_, value]) => value)
+    .map(([key, value]) => `${key}: ${value}`)
+}
+
+const handleTemplateFormValidation = (isValid: boolean) => {
+  isStep2Valid.value = isValid
+}
+
+// Helper function to get country name
+const getCountryName = (countryCode: string) => {
+  const allCountries = [...targetCountries.africa, ...targetCountries.asia]
+  const country = allCountries.find(c => c.code === countryCode)
+  return country?.name || countryCode
+}
+// Quick templates for Step 3
+const quickTemplates = [
+  {
+    id: 'standard-clause',
+    name: 'Standard Clause',
+    content: `This Agreement shall be governed by and construed in accordance with the laws of ${contractData.value.jurisdiction.firstCountry || '[Your Country]'}.\n\nAny dispute arising out of or in connection with this Agreement shall be referred to arbitration in accordance with the rules of the relevant arbitration association.`
+  },
+  {
+    id: 'payment-terms',
+    name: 'Payment Terms',
+    content: `Payment shall be made within ${templateFormData.value.paymentDays || '30'} days of invoice date. Late payments shall bear interest at the rate of ${templateFormData.value.lateFeeRate || '1.5'}% per month.`
+  },
+  {
+    id: 'confidentiality',
+    name: 'Confidentiality',
+    content: `Both parties agree to maintain the confidentiality of all proprietary information received from the other party. This obligation shall survive the termination of this Agreement.`
+  },
+  {
+    id: 'termination',
+    name: 'Termination',
+    content: `Either party may terminate this Agreement with ${templateFormData.value.noticePeriod || '30'} days written notice. Upon termination, all outstanding obligations shall become immediately due and payable.`
+  }
+]
+
+const insertTemplate = (content: string) => {
+  contractData.value.terms += '\n\n' + content
+}
+
+// Fix proxy cloning issue in createContract
+const createContract = async () => {
+  console.log('Creating contract:', contractData.value)
+  
+  try {
+    // Create a plain object to avoid proxy issues
+    const contractToSave = {
+      ...JSON.parse(JSON.stringify(contractData.value)), // This fixes the proxy issue
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    // Create contract using the store
+    const newContract = await contractStore.createContract(contractToSave)
+    console.log('Contract created successfully:', newContract)
+    
+    // Navigate to signature page with the new contract ID
+    router.push({
+      path: '/signature',
+      query: { contractId: newContract.id }
+    })
+  } catch (error) {
+    console.error('Failed to create contract:', error)
+    alert('Failed to create contract. Please try again.')
+  }
+}
+
+// Import ContractPreview component
+import ContractPreview from '@/components/contracts/ContractPreview.vue'
+
+// Mobile navigation fix
+const fixMobileNavigation = () => {
+  // Prevent navigation lock by ensuring proper state cleanup
+  const cleanupNavigation = () => {
+    // Reset any loading states that might block navigation
+    showErrors.value = false
+  }
+
+  // Clean up before navigation
+  router.beforeEach((to, from, next) => {
+    cleanupNavigation()
+    next()
+  })
+
+  return cleanupNavigation
+}
+
+onMounted(() => {
+  const cleanup = fixMobileNavigation()
+  
+  // Add mobile-specific event listeners
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    console.log('Mobile device detected - applying mobile optimizations')
+    
+    // Fix viewport height
+    const setVH = () => {
+      let vh = window.innerHeight * 0.01
+      document.documentElement.style.setProperty('--vh', `${vh}px`)
+    }
+    
+    setVH()
+    window.addEventListener('resize', setVH)
+  }
+
+  onUnmounted(() => {
+    cleanup()
+  })
+})
+
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import { router } from './router'
-import './style.css' // This should import Tailwind CSS
+import './style.css'
 
 // Initialize stores
 const pinia = createPinia()

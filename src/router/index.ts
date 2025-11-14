@@ -56,4 +56,13 @@ const router = createRouter({
   ]
 })
 
+// Add error handling for route navigation
+router.onError((error) => {
+  console.error('Router error:', error)
+  // You can redirect to home or show an error page
+  if (error.message.includes('Failed to fetch dynamically imported module')) {
+    window.location.reload()
+  }
+})
+
 export { router }

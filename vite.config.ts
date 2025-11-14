@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
-import fs from 'fs'
 import path from 'path'
 
 export default defineConfig({
@@ -37,20 +36,13 @@ export default defineConfig({
         navigateFallback: null
       },
       devOptions: {
-        enabled: false // Completely disable in development
+        enabled: true // KEEP PWA IN DEV
       }
     })
   ],
   server: {
     host: '0.0.0.0',
-    port: 3000,
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'ssl/localhost.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'ssl/localhost.crt'))
-    }
-  },
-  build: {
-    target: 'esnext'
+    port: 3000
   },
   resolve: {
     alias: {

@@ -196,3 +196,71 @@ a:focus-visible {
   margin-right: unset;
   margin-left: auto;
 }
+
+/* MOBILE PERFORMANCE FIXES ONLY - KEEP YOUR BEAUTIFUL DESIGN */
+
+/* Fix mobile viewport */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Fix 100vh on mobile */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Fix mobile tap targets */
+button, 
+a, 
+select, 
+input, 
+.btn-primary, 
+.btn-secondary, 
+.btn-accent {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent zoom on iOS inputs */
+input, 
+select, 
+textarea {
+  font-size: 16px;
+}
+
+/* Fix mobile scrolling */
+body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix sticky headers on mobile */
+.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+}
+
+/* Fix dropdowns on mobile */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Fix button active states */
+button:active {
+  transform: scale(0.98);
+}
+
+/* Fix font rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
