@@ -18,6 +18,7 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        categories: ['business', 'productivity'],
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -28,25 +29,75 @@ export default defineConfig({
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        navigateFallback: null
+        navigateFallback: null,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'iconify-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 30
+              }
+            }
+          }
+        ]
       },
       devOptions: {
-        enabled: true // KEEP PWA IN DEV
+        enabled: true,
+        type: 'module'
       }
     })
   ],
   server: {
     host: '0.0.0.0',
-    port: 3000
+    port: 3000,
+    hmr: {
+      overlay: true
+    }
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
+    }
+  },
+  build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia'],
+          utils: ['@iconify/vue']
+        }
+      }
     }
   }
 })

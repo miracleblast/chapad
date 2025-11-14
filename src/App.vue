@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-chapa-sand-50 dark:bg-gray-900 transition-colors duration-300">
+  <div :class="['min-h-screen bg-chapa-sand-50 dark:bg-gray-900 pb-20 transition-colors duration-300', { 'dark': isDarkMode }]">
     <!-- Main Content -->
-    <main class="pb-20"> <!-- Padding for bottom nav -->
+    <main class="pb-20">
       <RouterView />
     </main>
 
@@ -77,8 +77,22 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const route = useRoute()
+const isDarkMode = ref(false)
+
 const currentRoute = computed(() => route.name as string)
+
+// Dark mode logic from Zoomka
+onMounted(() => {
+  const saved = localStorage.getItem('chapa-dark-mode')
+  isDarkMode.value = saved ? JSON.parse(saved) : false
+  updateDarkMode()
+})
+
+const updateDarkMode = () => {
+  localStorage.setItem('chapa-dark-mode', JSON.stringify(isDarkMode.value))
+  document.documentElement.classList.toggle('dark', isDarkMode.value)
+}
 </script>

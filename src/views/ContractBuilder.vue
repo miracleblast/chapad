@@ -1,30 +1,30 @@
 <template>
-  <div class="min-h-screen bg-chapa-sand-50 dark:bg-gray-900">
-    <!-- Header -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+  <div class="min-h-screen bg-chapa-sand-50 dark:bg-gray-900 safe-top safe-bottom">
+    <!-- MOBILE OPTIMIZED HEADER -->
+    <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 safe-top">
       <div class="container mx-auto px-4 py-3">
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <button @click="goBack" class="btn-ghost p-2">
+          <div class="flex items-center space-x-3 flex-1 min-w-0">
+            <button @click="goBack" class="btn-ghost p-2 flex-shrink-0">
               <Icon icon="material-symbols:arrow-back" class="text-xl" />
             </button>
-            <div>
-              <h1 class="text-lg font-cal text-chapa-purple-600 dark:text-chapa-purple-300">
+            <div class="min-w-0 flex-1">
+              <h1 class="text-lg font-cal text-chapa-purple-600 dark:text-chapa-purple-300 truncate">
                 {{ currentContractType?.name || 'Create Contract' }}
               </h1>
-              <p class="text-xs text-gray-500 dark:text-gray-400 font-poppins">
+              <p class="text-xs text-gray-500 dark:text-gray-400 font-poppins truncate">
                 Step {{ currentStep }} of {{ totalSteps }}
               </p>
             </div>
           </div>
-          <button @click="saveDraft" class="btn-ghost p-2">
+          <button @click="saveDraft" class="btn-ghost p-2 flex-shrink-0">
             <Icon icon="material-symbols:save" class="text-xl" />
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Progress Bar -->
+    <!-- PROGRESS BAR -->
     <div class="bg-white dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
         <span>Step {{ currentStep }}</span>
@@ -38,12 +38,12 @@
       </div>
     </div>
 
-    <!-- Main Form Content -->
-    <div class="container mx-auto px-4 py-6">
-      <!-- Step 1: Contract Basics -->
-      <div v-if="currentStep === 1" class="space-y-6">
+    <!-- MAIN CONTENT WITH MOBILE OPTIMIZATIONS -->
+    <div class="container mx-auto px-4 py-4 overflow-touch">
+      <!-- Step 1: Contract Basics - MOBILE OPTIMIZED -->
+      <div v-if="currentStep === 1" class="space-y-4">
         <!-- Validation Summary -->
-        <div v-if="showErrors && !isStep1Valid" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div v-if="showErrors && !isStep1Valid" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mobile-padding">
           <div class="flex items-start space-x-3">
             <Icon icon="material-symbols:error" class="text-red-500 text-xl mt-0.5 flex-shrink-0" />
             <div>
@@ -54,7 +54,7 @@
         </div>
 
         <!-- Contract Title -->
-        <div class="chapa-glass-card p-5">
+        <div class="chapa-glass-card p-4 mobile-padding">
           <label class="block text-sm font-semibold text-gray-800 dark:text-white mb-3 font-poppins">
             Contract Title *
           </label>
@@ -69,7 +69,7 @@
         </div>
 
         <!-- Parties Information -->
-        <div class="chapa-glass-card p-5">
+        <div class="chapa-glass-card p-4 mobile-padding">
           <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
             Parties Involved
           </h3>
@@ -103,118 +103,111 @@
           </div>
         </div>
 
-<!-- Jurisdiction - MOBILE FRIENDLY BUT BEAUTIFUL -->
-<div class="chapa-glass-card p-5">
-  <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
-    Jurisdiction & Currency
-  </h3>
-  
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <!-- Your Country -->
-    <div>
-      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
-        Your Country *
-      </label>
-      <select 
-        v-model="contractData.jurisdiction.firstCountry"
-        class="input-modern w-full"
-        :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.firstCountry }"
-      >
-        <option value="">Select your country</option>
-        
-        <!-- Africa Countries -->
-        <optgroup label="🌍 Africa">
-          <option 
-            v-for="country in targetCountries.africa" 
-            :key="'first-' + country.code" 
-            :value="country.code"
-          >
-            {{ country.name }}
-          </option>
-        </optgroup>
-        
-        <!-- Asia Countries -->
-        <optgroup label="🌏 Asia">
-          <option 
-            v-for="country in targetCountries.asia" 
-            :key="'first-' + country.code" 
-            :value="country.code"
-          >
-            {{ country.name }}
-          </option>
-        </optgroup>
-      </select>
-    </div>
-
-    <!-- Their Country -->
-    <div>
-      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
-        Their Country *
-      </label>
-      <select 
-        v-model="contractData.jurisdiction.secondCountry"
-        class="input-modern w-full"
-        :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.secondCountry }"
-      >
-        <option value="">Select their country</option>
-        
-        <!-- Africa Countries -->
-        <optgroup label="🌍 Africa">
-          <option 
-            v-for="country in targetCountries.africa" 
-            :key="'second-' + country.code" 
-            :value="country.code"
-          >
-            {{ country.name }}
-          </option>
-        </optgroup>
-        
-        <!-- Asia Countries -->
-        <optgroup label="🌏 Asia">
-          <option 
-            v-for="country in targetCountries.asia" 
-            :key="'second-' + country.code" 
-            :value="country.code"
-          >
-            {{ country.name }}
-          </option>
-        </optgroup>
-      </select>
-    </div>
-  </div>
-
-  <!-- Currency -->
-  <div class="mt-4">
-    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
-      Contract Currency *
-    </label>
-    <select 
-      v-model="contractData.jurisdiction.currency"
-      class="input-modern w-full"
-      :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.currency }"
-    >
-      <option value="">Select currency</option>
-      <option v-for="currency in availableCurrencies" :key="currency.code" :value="currency.code">
-        {{ currency.symbol }} {{ currency.name }} ({{ currency.code }})
-      </option>
-    </select>
-  </div>
-</div>
-        <!-- Step 1 Navigation Buttons -->
-        <div class="flex justify-center space-x-4 mt-8">
-          <button @click="goBack" class="btn-secondary flex items-center space-x-2 px-6 py-3">
-            <Icon icon="material-symbols:arrow-back" class="text-lg" />
-            <span>Back</span>
-          </button>
+        <!-- Jurisdiction - MOBILE OPTIMIZED -->
+        <div class="chapa-glass-card p-4 mobile-padding">
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
+            Jurisdiction & Currency
+          </h3>
           
+          <div class="grid mobile-stack gap-4">
+            <!-- Your Country -->
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+                Your Country *
+              </label>
+              <select 
+                v-model="contractData.jurisdiction.firstCountry"
+                class="input-modern w-full"
+                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.firstCountry }"
+              >
+                <option value="">Select your country</option>
+                <optgroup label="🌍 Africa">
+                  <option 
+                    v-for="country in targetCountries.africa" 
+                    :key="'first-' + country.code" 
+                    :value="country.code"
+                  >
+                    {{ country.name }}
+                  </option>
+                </optgroup>
+                <optgroup label="🌏 Asia">
+                  <option 
+                    v-for="country in targetCountries.asia" 
+                    :key="'first-' + country.code" 
+                    :value="country.code"
+                  >
+                    {{ country.name }}
+                  </option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- Their Country -->
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+                Their Country *
+              </label>
+              <select 
+                v-model="contractData.jurisdiction.secondCountry"
+                class="input-modern w-full"
+                :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.secondCountry }"
+              >
+                <option value="">Select their country</option>
+                <optgroup label="🌍 Africa">
+                  <option 
+                    v-for="country in targetCountries.africa" 
+                    :key="'second-' + country.code" 
+                    :value="country.code"
+                  >
+                    {{ country.name }}
+                  </option>
+                </optgroup>
+                <optgroup label="🌏 Asia">
+                  <option 
+                    v-for="country in targetCountries.asia" 
+                    :key="'second-' + country.code" 
+                    :value="country.code"
+                  >
+                    {{ country.name }}
+                  </option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          <!-- Currency -->
+          <div class="mt-4">
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 font-poppins">
+              Contract Currency *
+            </label>
+            <select 
+              v-model="contractData.jurisdiction.currency"
+              class="input-modern w-full"
+              :class="{ 'border-red-300 ring-1 ring-red-300': showErrors && !contractData.jurisdiction.currency }"
+            >
+              <option value="">Select currency</option>
+              <option v-for="currency in availableCurrencies" :key="currency.code" :value="currency.code">
+                {{ currency.symbol }} {{ currency.name }} ({{ currency.code }})
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Step 1 Navigation Buttons - MOBILE OPTIMIZED -->
+        <div class="flex flex-col space-y-3 mt-6 safe-bottom">
           <button 
             @click="nextStep"
             :disabled="!isStep1Valid"
-            class="btn-accent flex items-center space-x-2 px-6 py-3"
+            class="btn-primary w-full justify-center"
             :class="{ 'opacity-50 cursor-not-allowed': !isStep1Valid }"
           >
             <span>Continue to Details</span>
-            <Icon icon="material-symbols:arrow-forward" class="text-lg" />
+            <Icon icon="material-symbols:arrow-forward" class="text-lg ml-2" />
+          </button>
+          
+          <button @click="goBack" class="btn-secondary w-full justify-center">
+            <Icon icon="material-symbols:arrow-back" class="text-lg mr-2" />
+            <span>Back</span>
           </button>
         </div>
       </div>
@@ -423,12 +416,13 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Icon } from '@iconify/vue'
-import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useContractStore } from '@/stores/contracts'
 import { TemplateEngine } from '@/utils/templates'
-import ContractForm from '@/components/contracts/ContractForm.vue' 
+import ContractForm from '@/components/contracts/ContractForm.vue'
+import ContractPreview from '@/components/contracts/ContractPreview.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -1006,30 +1000,9 @@ const createContract = async () => {
   }
 }
 
-// Import ContractPreview component
-import ContractPreview from '@/components/contracts/ContractPreview.vue'
-
-// Mobile navigation fix
-const fixMobileNavigation = () => {
-  // Prevent navigation lock by ensuring proper state cleanup
-  const cleanupNavigation = () => {
-    // Reset any loading states that might block navigation
-    showErrors.value = false
-  }
-
-  // Clean up before navigation
-  router.beforeEach((to, from, next) => {
-    cleanupNavigation()
-    next()
-  })
-
-  return cleanupNavigation
-}
 
 onMounted(() => {
-  const cleanup = fixMobileNavigation()
-  
-  // Add mobile-specific event listeners
+  // Add mobile-specific optimizations
   if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
     console.log('Mobile device detected - applying mobile optimizations')
     
@@ -1041,13 +1014,29 @@ onMounted(() => {
     
     setVH()
     window.addEventListener('resize', setVH)
+    
+    // Clean up event listener on unmount
+    onUnmounted(() => {
+      window.removeEventListener('resize', setVH)
+    })
   }
-
-  onUnmounted(() => {
-    cleanup()
-  })
 })
 
+
+const fixMobileNavigation = () => {
+  const cleanupNavigation = () => {
+    showErrors.value = false
+  }
+
+  const unsubscribe = router.beforeEach((to, from, next) => {
+    cleanupNavigation()
+    next()
+  })
+
+  return () => {
+    unsubscribe() // Clean up the router listener
+  }
+}
 </script>
 
 <style scoped>
