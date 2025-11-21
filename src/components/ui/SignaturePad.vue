@@ -50,12 +50,13 @@
 
     <!-- Type Signature -->
     <div v-else-if="activeTab === 'type'" class="space-y-4">
-      <div class="flex space-x-2 mb-4">
+      <!-- ENHANCED: More font options -->
+      <div class="grid grid-cols-3 gap-2 mb-4">
         <button
           v-for="font in availableFonts"
           :key="font.id"
           @click="selectedFont = font.id"
-          class="px-3 py-2 rounded-lg border transition-colors"
+          class="px-3 py-2 rounded-lg border transition-colors text-xs"
           :class="selectedFont === font.id
             ? 'border-chapa-purple-500 bg-chapa-purple-50 dark:bg-chapa-purple-900/20 text-chapa-purple-700 dark:text-chapa-purple-300'
             : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'"
@@ -74,17 +75,32 @@
         maxlength="50"
       >
 
-      <div class="text-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg min-h-20 flex items-center justify-center">
+      <div class="text-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg min-h-20 flex items-center justify-center bg-white dark:bg-gray-800">
         <span 
           v-if="typedSignature"
           class="text-3xl"
-          :style="{ fontFamily: selectedFontFamily }"
+          :style="{ fontFamily: selectedFontFamily, color: signatureColor }"
         >
           {{ typedSignature }}
         </span>
         <span v-else class="text-gray-400 text-sm">
           Your signature will appear here
         </span>
+      </div>
+
+      <!-- ENHANCED: Color picker for text signatures -->
+      <div v-if="typedSignature" class="flex items-center space-x-3">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Color:</span>
+        <div class="flex space-x-1">
+          <button
+            v-for="color in signatureColors"
+            :key="color"
+            @click="signatureColor = color"
+            class="w-6 h-6 rounded-full border-2 transition-transform"
+            :class="signatureColor === color ? 'border-gray-800 dark:border-gray-200 scale-110' : 'border-gray-300'"
+            :style="{ backgroundColor: color }"
+          ></button>
+        </div>
       </div>
     </div>
 
@@ -159,6 +175,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 interface SignatureData {
   type: 'draw' | 'text' | 'image'
   data: string
+  font?: string
+  color?: string
 }
 
 const emit = defineEmits<{
@@ -182,13 +200,29 @@ const isDrawing = ref(false)
 const lastX = ref(0)
 const lastY = ref(0)
 
-// Type signature
+// Type signature - ENHANCED: More fonts and colors
 const typedSignature = ref('')
 const selectedFont = ref('cursive')
+const signatureColor = ref('#000000') // NEW: Color for text signatures
+
+// ENHANCED: More font options
 const availableFonts = [
   { id: 'cursive', name: 'Cursive', family: 'cursive' },
   { id: 'dancing', name: 'Dancing', family: '"Dancing Script", cursive' },
-  { id: 'great', name: 'Great Vibes', family: '"Great Vibes", cursive' }
+  { id: 'great', name: 'Great Vibes', family: '"Great Vibes", cursive' },
+  { id: 'parisienne', name: 'Parisienne', family: '"Parisienne", cursive' }, // NEW
+  { id: 'sacramento', name: 'Sacramento', family: '"Sacramento", cursive' }, // NEW
+  { id: 'clicker', name: 'Clicker', family: '"Clicker Script", cursive' } // NEW
+]
+
+// ENHANCED: Signature colors
+const signatureColors = [
+  '#000000', // Black
+  '#7C3AED', // Chapa Purple
+  '#EA580C', // Chapa Orange
+  '#DC2626', // Red
+  '#2563EB', // Blue
+  '#059669'  // Green
 ]
 
 // Upload signature
@@ -355,7 +389,7 @@ const removeUploadedImage = () => {
   }
 }
 
-// Save signature
+// Save signature - ENHANCED: Include font and color data
 const saveSignature = () => {
   let signatureData: SignatureData
 
@@ -371,7 +405,9 @@ const saveSignature = () => {
     case 'type':
       signatureData = {
         type: 'text',
-        data: typedSignature.value.trim()
+        data: typedSignature.value.trim(),
+        font: selectedFontFamily.value, // ENHANCED: Include font
+        color: signatureColor.value     // ENHANCED: Include color
       }
       break
 
@@ -388,6 +424,14 @@ const saveSignature = () => {
 
   emit('saved', signatureData)
 }
+
+// ENHANCED: Reset function when switching tabs
+const resetTabData = () => {
+  // This could be enhanced to reset specific tab data when switching
+}
+
+// Watch for tab changes to potentially reset data
+// You could add watchers here if needed
 </script>
 
 <style scoped>
@@ -411,5 +455,36 @@ button {
     max-height: 80vh;
     overflow-y: auto;
   }
+}
+
+/* ENHANCED: Better font preview for text signatures */
+.font-preview {
+  font-size: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+/* ENHANCED: Color picker styles */
+.color-picker {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.color-option {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.selected {
+  border-color: #374151;
+  transform: scale(1.15);
 }
 </style>

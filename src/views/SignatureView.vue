@@ -34,7 +34,7 @@
           </div>
         </div>
 
-        <!-- Signing Progress -->
+        <!-- Enhanced Signing Progress -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-sm text-gray-600 dark:text-gray-400">Your Signature</span>
@@ -54,10 +54,37 @@
             <span v-else class="text-gray-400 text-sm">Waiting</span>
           </div>
         </div>
+
+        <!-- Share Instructions (NEW) -->
+        <div v-if="userSignature && !otherPartySignature" class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div class="flex items-start space-x-2">
+            <Icon icon="material-symbols:share" class="text-blue-500 mt-0.5" />
+            <div>
+              <p class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
+                Share with Counterparty
+              </p>
+              <p class="text-xs text-blue-700 dark:text-blue-400">
+                Send this contract to <strong>{{ contract?.parties.secondParty.name }}</strong> for their signature
+              </p>
+              <button @click="shareContract" class="btn-primary text-xs mt-2 px-3 py-1">
+                <Icon icon="material-symbols:share" class="text-sm mr-1" />
+                Share Contract
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fully Signed Celebration (NEW) -->
+        <div v-if="userSignature && otherPartySignature" class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div class="flex items-center space-x-2 text-green-600 dark:text-green-400">
+            <Icon icon="material-symbols:celebration" />
+            <span class="font-medium">Contract Fully Executed!</span>
+          </div>
+        </div>
       </div>
 
       <!-- Signature Pad -->
-      <div class="chapa-glass-card p-5 mb-6">
+      <div v-if="!userSignature" class="chapa-glass-card p-5 mb-6">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 font-poppins">
           Add Your Signature
         </h3>
@@ -76,7 +103,7 @@
         
         <div class="flex items-center justify-center p-6 border-2 border-dashed border-green-200 dark:border-green-800 rounded-lg bg-green-50 dark:bg-green-900/20">
           <div v-if="userSignature.type === 'text'" class="text-center">
-            <div class="text-3xl font-signature mb-2" :style="{ fontFamily: getSignatureFont(userSignature.data) }">
+            <div class="text-3xl font-signature mb-2" :style="{ fontFamily: getSignatureFont(userSignature.data), color: userSignature.color }">
               {{ userSignature.data }}
             </div>
             <p class="text-sm text-green-600 dark:text-green-400">Text Signature</p>
@@ -165,9 +192,17 @@ const getContractIcon = (type?: string) => {
   return icons[type || 'custom'] || 'material-symbols:description'
 }
 
+// ENHANCED: More font options for text signatures
 const getSignatureFont = (signatureText: string) => {
-  // Simple font detection based on signature characteristics
-  return signatureText.length > 15 ? 'cursive' : '"Great Vibes", cursive'
+  const fonts = [
+    'cursive', 
+    '"Dancing Script", cursive', 
+    '"Great Vibes", cursive', 
+    '"Parisienne", cursive', 
+    '"Sacramento", cursive',
+    '"Clicker Script", cursive'
+  ]
+  return fonts[signatureText.length % fonts.length]
 }
 
 const getCountryName = (countryCode?: string) => {
@@ -188,6 +223,7 @@ const handleSignatureSaved = (signatureData: any) => {
   userSignature.value = signatureData
 }
 
+// ENHANCED: Better success notification
 const finalizeSignature = async () => {
   if (!contract.value || !userSignature.value) return
 
@@ -197,16 +233,60 @@ const finalizeSignature = async () => {
     
     await contractStore.addSignature(contract.value.id, userSignature.value, party)
     
-    alert('Signature saved successfully!')
-    closeSignature()
+    // Enhanced notification
+    showNotification('Signature saved successfully!', 'success')
+    
+    // If both parties signed, show celebration
+    if (otherPartySignature.value) {
+      setTimeout(() => {
+        showNotification('Contract fully executed! 🎉', 'success')
+      }, 1000)
+    }
     
   } catch (error) {
-    alert('Failed to save signature. Please try again.')
+    showNotification('Failed to save signature. Please try again.', 'error')
   }
 }
 
+// NEW: Share contract functionality
+const shareContract = () => {
+  // In a real app, this would generate a shareable link or send an email
+  showNotification('Share feature coming soon!', 'info')
+}
+
+// NEW: Enhanced notification system
+const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  // Create notification element
+  const notification = document.createElement('div')
+  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+  
+  notification.className = `fixed top-4 left-1/2 transform -translate-x-1/2 z-50 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg font-poppins text-sm transition-all duration-300`
+  notification.textContent = message
+  notification.style.opacity = '0'
+  notification.style.transform = 'translateX(-50%) translateY(-20px)'
+  
+  document.body.appendChild(notification)
+  
+  // Animate in
+  setTimeout(() => {
+    notification.style.opacity = '1'
+    notification.style.transform = 'translateX(-50%) translateY(0)'
+  }, 100)
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.style.opacity = '0'
+    notification.style.transform = 'translateX(-50%) translateY(-20px)'
+    setTimeout(() => {
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification)
+      }
+    }, 300)
+  }, 3000)
+}
+
 const closeSignature = () => {
-  router.back()
+  router.push('/documents')
 }
 
 // Load contract data
@@ -227,11 +307,11 @@ onMounted(async () => {
         }
       }
     } catch (error) {
-      alert('Failed to load contract')
+      showNotification('Failed to load contract', 'error')
       closeSignature()
     }
   } else {
-    alert('No contract specified')
+    showNotification('No contract specified', 'error')
     closeSignature()
   }
 })
@@ -243,6 +323,6 @@ onMounted(async () => {
 }
 
 .font-signature {
-  font-family: cursive, 'Dancing Script', 'Great Vibes', sans-serif;
+  font-family: cursive, 'Dancing Script', 'Great Vibes', 'Parisienne', 'Sacramento', 'Clicker Script', sans-serif;
 }
 </style>

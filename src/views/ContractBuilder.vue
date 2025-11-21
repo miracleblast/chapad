@@ -642,29 +642,6 @@ const isStep3Valid = computed(() => {
   return valid
 })
 
-// Manual validation functions
-const validateStep1 = () => {
-  showErrors.value = true
-  if (isStep1Valid.value) {
-    console.log('✅ Step 1 is valid! You can proceed.')
-    // Auto-proceed to step 2 if valid
-    nextStep()
-  } else {
-    console.log('❌ Step 1 validation failed')
-  }
-}
-
-const validateStep3 = () => {
-  showErrors.value = true
-  if (isStep3Valid.value) {
-    console.log('✅ Terms are valid! You can proceed.')
-    // Auto-proceed to create contract if valid
-    nextStep()
-  } else {
-    console.log('❌ Terms validation failed')
-  }
-}
-
 // Navigation - FIXED
 const goBack = () => {
   if (currentStep.value > 1) {
@@ -679,16 +656,34 @@ const goBack = () => {
 const nextStep = () => {
   console.log('Next step clicked - Current step:', currentStep.value)
   
+  // Step 1 validation
   if (currentStep.value === 1) {
-    validateAndProceed()
-    return
+    showErrors.value = true
+    if (!isStep1Valid.value) {
+      console.log('❌ Step 1 validation failed')
+      return
+    }
+    console.log('✅ Step 1 is valid! Proceeding to step 2')
   }
 
+  // Step 2 validation (only if template requires it)
+  if (currentStep.value === 2) {
+    if (selectedTemplateType.value && selectedTemplateType.value !== 'none' && !isStep2Valid.value) {
+      showErrors.value = true
+      console.log('❌ Step 2 validation failed')
+      return
+    }
+    console.log('✅ Step 2 validation passed or not required')
+  }
+
+  // Step 3 validation
   if (currentStep.value === 3 && !isStep3Valid.value) {
     showErrors.value = true
+    console.log('❌ Step 3 validation failed')
     return
   }
 
+  // Proceed to next step
   if (currentStep.value < totalSteps) {
     currentStep.value++
     showErrors.value = false
@@ -705,6 +700,7 @@ const nextStep = () => {
     createContract()
   }
 }
+
 
 const previousStep = () => {
   if (currentStep.value > 1) {
@@ -776,6 +772,9 @@ onMounted(() => {
     // Load template if specified
     if (route.query.template && route.query.template !== 'true') {
       loadSpecificTemplate(route.query.template as string)
+      // Auto-select quick template when coming from templates
+      selectedTemplateType.value = 'quick'
+      showTemplateSelector.value = false
     }
     // Set title for from-scratch contracts
     else if (route.query.fromScratch === 'true') {
@@ -787,9 +786,15 @@ onMounted(() => {
         custom: 'Custom Contract'
       }
       contractData.value.title = `${typeNames[route.query.type as string] || route.query.type} - ${new Date().toLocaleDateString()}`
+      // For from-scratch, show template selector
+      showTemplateSelector.value = true
+    } else {
+      // Default: show template selector
+      showTemplateSelector.value = true
     }
   } else {
     contractData.value.type = 'custom'
+    showTemplateSelector.value = true
   }
   
   // Load draft
@@ -833,25 +838,53 @@ const loadSpecificTemplate = (templateId: string) => {
 }
 
 const templateOptions = [
-  { id: 'quick', name: 'Quick Setup', icon: 'material-symbols:bolt' },
-  { id: 'detailed', name: 'Detailed', icon: 'material-symbols:description' },
-  { id: 'custom', name: 'Custom Fields', icon: 'material-symbols:edit' },
-  { id: 'none', name: 'Skip Details', icon: 'material-symbols:skip-next' }
+  { 
+    id: 'quick', 
+    name: 'Quick Setup', 
+    icon: 'material-symbols:bolt',
+    description: 'Ready-to-use template - just fill names and sign',
+    type: 'ready-to-use'
+  },
+  { 
+    id: 'detailed', 
+    name: 'Detailed', 
+    icon: 'material-symbols:description',
+    description: 'Template with customizable fields',
+    type: 'customizable' 
+  },
+  { 
+    id: 'custom', 
+    name: 'Custom Fields', 
+    icon: 'material-symbols:edit',
+    description: 'Build from scratch with full control',
+    type: 'customizable'
+  },
+  { 
+    id: 'none', 
+    name: 'Skip Details', 
+    icon: 'material-symbols:skip-next',
+    description: 'Basic contract without extra fields',
+    type: 'minimal'
+  }
 ]
 // Template fields based on contract type
 const templateFields = computed(() => {
-  if (!selectedTemplateType.value || !contractData.value.type) return []
+  // Only show fields for customizable templates (detailed and custom)
+  if (!selectedTemplateType.value || 
+      selectedTemplateType.value === 'quick' || 
+      selectedTemplateType.value === 'none' || 
+      !contractData.value.type) {
+    return []
+  }
 
   const baseFields: any[] = []
   
-  switch (contractData.value.type) {
+    switch (contractData.value.type) {
     case 'debt':
       baseFields.push(
         { key: 'loanAmount', label: 'Loan Amount', type: 'number', required: true, placeholder: 'Enter loan amount' },
         { key: 'interestRate', label: 'Interest Rate (%)', type: 'number', required: false, placeholder: 'Annual interest rate' },
-        { key: 'repaymentMonths', label: 'Repayment Period (Months)', type: 'number', required: true, placeholder: 'Number of months' },
-        { key: 'paymentSchedule', label: 'Payment Schedule', type: 'select', required: true, options: ['Monthly', 'Quarterly', 'Yearly', 'Custom'] },
-        { key: 'collateral', label: 'Collateral Description', type: 'textarea', required: false, placeholder: 'Describe any collateral' }
+        { key: 'repaymentMonths', label: 'Repayment Period (Months)', type: 'number', required: true, placeholder: 'Number of months' }
       )
       break
 
@@ -919,12 +952,74 @@ const templateFields = computed(() => {
 
 const selectTemplateType = (type: string) => {
   selectedTemplateType.value = type
-  if (type === 'none') {
-    showTemplateSelector.value = false
+  showTemplateSelector.value = false
+  
+  console.log('Selected template type:', type)
+  
+  // Handle different template types
+  if (type === 'quick') {
+    // Ready-to-use: Pre-fill with basic template
+    loadQuickTemplate()
+    isStep2Valid.value = true // Always valid for ready-to-use
+  } else if (type === 'detailed' || type === 'custom') {
+    // Customizable: Show form fields
+    initializeCustomFields()
+    // Validation will be handled by the form
+  } else if (type === 'none') {
+    // Minimal: Skip additional details
+    templateFormData.value = {}
     isStep2Valid.value = true
-  } else {
-    showTemplateSelector.value = false
   }
+}
+
+const loadQuickTemplate = () => {
+  // Pre-fill with a basic template for quick setup
+  const quickTemplates = {
+    debt: `DEBT AGREEMENT
+
+This Debt Agreement is made between [First Party] and [Second Party].
+
+BASIC TERMS:
+1. Loan Amount: [Amount] [Currency]
+2. Repayment Terms: As agreed between parties
+3. Governing Law: Laws of applicable jurisdiction
+
+Both parties agree to the terms above.`,
+    sales: `SALES AGREEMENT
+
+This Sales Agreement is made between [First Party] and [Second Party].
+
+BASIC TERMS:
+1. Goods/Services: [Description]
+2. Price: [Amount] [Currency] 
+3. Delivery: As agreed between parties
+
+Both parties agree to the terms above.`,
+    service: `SERVICE AGREEMENT
+
+This Service Agreement is made between [First Party] and [Second Party].
+
+BASIC TERMS:
+1. Services: [Description]
+2. Compensation: [Amount] [Currency]
+3. Term: As agreed between parties
+
+Both parties agree to the terms above.`
+  }
+  
+  const template = quickTemplates[contractData.value.type as keyof typeof quickTemplates]
+  if (template) {
+    contractData.value.terms = template
+  }
+  
+  // No additional fields for quick templates
+  templateFormData.value = {}
+}
+
+const initializeCustomFields = () => {
+  // Reset form data for custom fields
+  templateFormData.value = {}
+  // The templateFields computed property will automatically populate
 }
 
 const handleTemplateFormUpdate = (data: any) => {
@@ -937,6 +1032,7 @@ const handleTemplateFormUpdate = (data: any) => {
 
 const handleTemplateFormValidation = (isValid: boolean) => {
   isStep2Valid.value = isValid
+  console.log('Step 2 validation updated:', isValid)
 }
 
 // Helper function to get country name
@@ -980,7 +1076,7 @@ const createContract = async () => {
   try {
     // Create a plain object to avoid proxy issues
     const contractToSave = {
-      ...JSON.parse(JSON.stringify(contractData.value)), // This fixes the proxy issue
+      ...JSON.parse(JSON.stringify(contractData.value)),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -989,15 +1085,44 @@ const createContract = async () => {
     const newContract = await contractStore.createContract(contractToSave)
     console.log('Contract created successfully:', newContract)
     
+    // Show success notification
+    showSuccessNotification('Contract saved to My Documents!')
+    
     // Navigate to signature page with the new contract ID
-    router.push({
-      path: '/signature',
-      query: { contractId: newContract.id }
-    })
+    setTimeout(() => {
+      router.push({
+        path: '/signature',
+        query: { contractId: newContract.id }
+      })
+    }, 1500)
+    
   } catch (error) {
     console.error('Failed to create contract:', error)
-    alert('Failed to create contract. Please try again.')
+    showErrorNotification('Failed to create contract. Please try again.')
   }
+}
+
+const showSuccessNotification = (message: string) => {
+  // Simple notification - you can enhance this with the Notification component
+  const notification = document.createElement('div')
+  notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-poppins text-sm'
+  notification.textContent = message
+  document.body.appendChild(notification)
+  
+  setTimeout(() => {
+    document.body.removeChild(notification)
+  }, 3000)
+}
+
+const showErrorNotification = (message: string) => {
+  const notification = document.createElement('div')
+  notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg font-poppins text-sm'
+  notification.textContent = message
+  document.body.appendChild(notification)
+  
+  setTimeout(() => {
+    document.body.removeChild(notification)
+  }, 3000)
 }
 
 
