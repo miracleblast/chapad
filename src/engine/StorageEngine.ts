@@ -3,7 +3,7 @@ import { Signature } from '@/utils/signature'
 
 export class StorageEngine {
   private dbName = 'ChapaDocsDB'
-  private version = 1
+  private version = 2 // Bump version for new features
   private db: IDBDatabase | null = null
 
   // Initialize database
@@ -25,7 +25,9 @@ export class StorageEngine {
           const store = db.createObjectStore('contracts', { keyPath: 'id' })
           store.createIndex('slug', 'slug', { unique: false })
           store.createIndex('type', 'type', { unique: false })
+          store.createIndex('status', 'status', { unique: false })
           store.createIndex('createdAt', 'createdAt', { unique: false })
+          store.createIndex('cloudSync', 'cloudSync', { unique: false })
         }
 
         // Create signatures store
@@ -39,24 +41,40 @@ export class StorageEngine {
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings', { keyPath: 'key' })
         }
+
+        // Create cloud sync store (NEW)
+        if (!db.objectStoreNames.contains('cloudSync')) {
+          const store = db.createObjectStore('cloudSync', { keyPath: 'id' })
+          store.createIndex('contractId', 'contractId', { unique: true })
+          store.createIndex('provider', 'provider', { unique: false })
+          store.createIndex('syncedAt', 'syncedAt', { unique: false })
+        }
       }
     })
   }
 
-  // Contract operations
-  async saveContract(contract: Contract): Promise<void> {
+  // Enhanced contract operations with cloud sync tracking
+  async saveContract(contract: Contract & { cloudSync?: boolean }): Promise<void> {
     await this.ensureInit()
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(['contracts'], 'readwrite')
       const store = transaction.objectStore('contracts')
-      const request = store.put(contract)
+      
+      // Add cloud sync flag if not present
+      const contractWithSync = {
+        ...contract,
+        cloudSync: contract.cloudSync || false,
+        updatedAt: new Date().toISOString()
+      }
+      
+      const request = store.put(contractWithSync)
 
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve()
     })
   }
 
-  async getContract(id: string): Promise<Contract | null> {
+  async getContract(id: string): Promise<(Contract & { cloudSync?: boolean }) | null> {
     await this.ensureInit()
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(['contracts'], 'readonly')
@@ -68,7 +86,7 @@ export class StorageEngine {
     })
   }
 
-  async getAllContracts(): Promise<Contract[]> {
+  async getAllContracts(): Promise<(Contract & { cloudSync?: boolean })[]> {
     await this.ensureInit()
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(['contracts'], 'readonly')
@@ -80,6 +98,76 @@ export class StorageEngine {
     })
   }
 
+  async getContractsByStatus(status: string): Promise<Contract[]> {
+    await this.ensureInit()
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['contracts'], 'readonly')
+      const store = transaction.objectStore('contracts')
+      const index = store.index('status')
+      const request = index.getAll(status)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve(request.result || [])
+    })
+  }
+
+  // Cloud Sync Operations (NEW)
+  async markContractAsSynced(contractId: string, provider: 'google' | 'onedrive', remoteId?: string): Promise<void> {
+    await this.ensureInit()
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['contracts', 'cloudSync'], 'readwrite')
+      
+      // Update contract cloudSync status
+      const contractStore = transaction.objectStore('contracts')
+      const contractRequest = contractStore.get(contractId)
+      
+      contractRequest.onsuccess = () => {
+        const contract = contractRequest.result
+        if (contract) {
+          contract.cloudSync = true
+          contractStore.put(contract)
+        }
+      }
+
+      // Add to cloud sync log
+      const syncStore = transaction.objectStore('cloudSync')
+      const syncRecord = {
+        id: `${contractId}_${provider}`,
+        contractId,
+        provider,
+        remoteId,
+        syncedAt: new Date().toISOString()
+      }
+      syncStore.put(syncRecord)
+
+      transaction.onerror = () => reject(transaction.error)
+      transaction.oncomplete = () => resolve()
+    })
+  }
+
+  async getCloudSyncStatus(contractId: string): Promise<{ google?: string; onedrive?: string }> {
+    await this.ensureInit()
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['cloudSync'], 'readonly')
+      const store = transaction.objectStore('cloudSync')
+      const index = store.index('contractId')
+      const request = index.getAll(contractId)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        const syncs = request.result || []
+        const status: { google?: string; onedrive?: string } = {}
+        
+        syncs.forEach(sync => {
+          status[sync.provider] = sync.syncedAt
+        })
+        
+        resolve(status)
+      }
+    })
+  }
+
+  // Rest of your existing methods (signatures, settings, etc.) remain the same...
   async deleteContract(id: string): Promise<void> {
     await this.ensureInit()
     return new Promise((resolve, reject) => {
@@ -177,11 +265,12 @@ export class StorageEngine {
   async clearAllData(): Promise<void> {
     await this.ensureInit()
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(['contracts', 'signatures', 'settings'], 'readwrite')
+      const transaction = this.db!.transaction(['contracts', 'signatures', 'settings', 'cloudSync'], 'readwrite')
       
       transaction.objectStore('contracts').clear()
       transaction.objectStore('signatures').clear()
       transaction.objectStore('settings').clear()
+      transaction.objectStore('cloudSync').clear()
 
       transaction.onerror = () => reject(transaction.error)
       transaction.oncomplete = () => resolve()

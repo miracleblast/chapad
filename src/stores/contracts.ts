@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { Contract, ContractEngine } from '@/utils/contracts'
 import { Signature, SignatureEngine } from '@/utils/signature'
+import { CloudStorageManager } from '@/engine/CloudStorageManager' // ADD THIS
+import { NotificationManager } from '@/engine/NotificationManager' // ADD THIS
 
 export const useContractStore = defineStore('contracts', {
   state: () => ({
@@ -106,6 +108,7 @@ export const useContractStore = defineStore('contracts', {
     clearError() {
       this.error = null
     },
+
     async addSignature(contractId: string, signatureData: any, party: 'firstParty' | 'secondParty') {
       this.isLoading = true
       try {
@@ -134,9 +137,24 @@ export const useContractStore = defineStore('contracts', {
           contract.updatedAt = new Date().toISOString()
         }
 
+        // NEW: Show notification
+        await NotificationManager.showNotification({
+          type: 'success',
+          title: 'Signature Added',
+          message: `${party === 'firstParty' ? 'First' : 'Second'} party signature saved`
+        })
+
         return signature
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Failed to add signature'
+        
+        // NEW: Show error notification
+        await NotificationManager.showNotification({
+          type: 'error',
+          title: 'Signature Error',
+          message: 'Failed to save signature'
+        })
+        
         throw error
       } finally {
         this.isLoading = false
@@ -150,6 +168,30 @@ export const useContractStore = defineStore('contracts', {
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Failed to load signatures'
         throw error
+      }
+    },
+
+    // NEW: Cloud Storage Integration
+    async saveToCloud(contract: Contract, provider: 'google' | 'onedrive') {
+      try {
+        if (provider === 'google') {
+          await CloudStorageManager.saveToGoogleDrive(contract)
+        } else {
+          await CloudStorageManager.saveToOneDrive(contract)
+        }
+      } catch (error) {
+        this.error = `Failed to save to ${provider}: ${error}`
+        throw error
+      }
+    },
+
+    // NEW: Get cloud sync status
+    async getCloudSyncStatus(contractId: string) {
+      try {
+        return await CloudStorageManager.getContractSyncStatus(contractId)
+      } catch (error) {
+        console.error('Failed to get cloud sync status:', error)
+        return { google: undefined, onedrive: undefined }
       }
     }
   }

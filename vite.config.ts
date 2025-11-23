@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'ChapaDocs',
         short_name: 'ChapaDocs',
-        description: 'Official business documents made in Africa',
+        description: 'Official business documents made in Africa for African businesses',
         theme_color: '#7c3aed',
         background_color: '#ffffff',
         display: 'standalone',
@@ -41,6 +41,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         navigateFallback: null,
+            cleanupOutdatedCaches: true,
+    skipWaiting: true,
+    clientsClaim: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -97,7 +100,9 @@ export default defineConfig({
           vendor: ['vue', 'vue-router', 'pinia'],
           utils: ['@iconify/vue']
         }
+        
       }
     }
+    
   }
 })

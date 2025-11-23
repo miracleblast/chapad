@@ -7,7 +7,7 @@
       </div>
       <h1 class="text-4xl font-cal text-gradient-purple mb-2">ChapaDocs</h1>
       <p class="text-gray-600 dark:text-gray-300 font-poppins">
-        Let our Secretary Bird hande your documents, no snake deals, only clean contracts.
+        Let our Secretary Bird handle your documents, no snake deals, only clean contracts.
       </p>
     </div>
 

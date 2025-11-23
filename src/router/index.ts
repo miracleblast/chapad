@@ -52,6 +52,17 @@ const router = createRouter({
       path: '/license',
       name: 'license',
       component: () => import('../views/LicenseView.vue')
+    },
+    // FIXED: Removed extra comma and fixed these routes
+    {
+      path: '/contract-preview/:shareId',
+      name: 'ContractPreview',
+      component: () => import('../components/contracts/ContractPreview.vue')
+    },
+    {
+      path: '/sign-contract/:shareId', 
+      name: 'SignContract',
+      component: () => import('../views/SignatureView.vue')
     }
   ]
 })
@@ -59,7 +70,6 @@ const router = createRouter({
 // Add error handling for route navigation
 router.onError((error) => {
   console.error('Router error:', error)
-  // You can redirect to home or show an error page
   if (error.message.includes('Failed to fetch dynamically imported module')) {
     window.location.reload()
   }

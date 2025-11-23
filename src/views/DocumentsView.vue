@@ -11,7 +11,22 @@
         </p>
       </div>
     </div>
-
+<!-- Add this in the header section of DocumentsView.vue -->
+<div class="container mx-auto px-4 py-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-cal text-chapa-purple-600 dark:text-chapa-purple-300 mb-1">
+        My Documents
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 font-poppins">
+        {{ totalContracts }} contracts · {{ activeContracts }} active
+        <span class="ml-2 text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+          ID: {{ currentUserId }}
+        </span>
+      </p>
+    </div>
+  </div>
+</div>
     <!-- Filter Tabs -->
     <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div class="container mx-auto px-4">
@@ -30,7 +45,18 @@
         </div>
       </div>
     </div>
+<!-- Add this to your contract menu in DocumentsView.vue -->
+<button @click="saveToCloud(selectedContract, 'google')" 
+  class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+  <Icon icon="logos:google-drive" class="text-xl" />
+  <span class="font-poppins">Save to Google Drive</span>
+</button>
 
+<button @click="saveToCloud(selectedContract, 'onedrive')" 
+  class="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+  <Icon icon="simple-icons:microsoftonedrive" class="text-xl text-blue-500" />
+  <span class="font-poppins">Save to OneDrive</span>
+</button>
     <!-- Documents List -->
     <div class="container mx-auto px-4 py-6">
       <!-- Loading State -->
@@ -181,6 +207,7 @@ import { useRouter } from 'vue-router'
 import { useContractStore } from '@/stores/contracts'
 import { computed, ref, onMounted } from 'vue'
 import type { Contract } from '@/utils/contracts'
+import { CloudStorageManager } from '@/engine/CloudStorageManager'
 
 const router = useRouter()
 const contractStore = useContractStore()
@@ -199,6 +226,11 @@ const filters = [
 ]
 
 // Computed
+// In DocumentsView.vue script
+const currentUserId = computed(() => {
+  const license = UniversalLicenseManager.getStoredLicense('chapadocs')
+  return license?.id ? license.id.substring(0, 8) + '...' : 'No ID'
+})
 const totalContracts = computed(() => contractStore.contracts.length)
 const activeContracts = computed(() => contractStore.activeContracts.length)
 
@@ -371,7 +403,18 @@ ${contract.terms}
   a.click()
   URL.revokeObjectURL(url)
 }
-
+const saveToCloud = async (contract: Contract, provider: 'google' | 'onedrive') => {
+  try {
+    if (provider === 'google') {
+      await CloudStorageManager.saveToGoogleDrive(contract)
+    } else {
+      await CloudStorageManager.saveToOneDrive(contract)
+    }
+    // Notification is handled by CloudStorageManager
+  } catch (error) {
+    // Error notification is handled by CloudStorageManager
+  }
+}
 // Lifecycle
 onMounted(async () => {
   if (contractStore.contracts.length === 0) {

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { StorageEngine } from '@/utils/storage'
+import { NotificationManager } from '@/engine/NotificationManager' // ADD THIS
 
 export const useAppStore = defineStore('app', {
   state: () => ({
@@ -57,6 +58,15 @@ export const useAppStore = defineStore('app', {
         
         this.isInitialized = true
         
+        // NEW: Show welcome notification
+        setTimeout(() => {
+          NotificationManager.showNotification({
+            type: 'info',
+            title: 'Welcome to ChapaDocs',
+            message: 'Your contract management assistant is ready!'
+          })
+        }, 1000)
+        
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Failed to initialize app'
         console.error('App initialization error:', error)
@@ -70,6 +80,13 @@ export const useAppStore = defineStore('app', {
       this.isDarkMode = !this.isDarkMode
       this.applyTheme()
       localStorage.setItem('chapa-theme', this.isDarkMode ? 'dark' : 'light')
+      
+      // NEW: Show notification
+      NotificationManager.showNotification({
+        type: 'info',
+        title: 'Theme Changed',
+        message: `Switched to ${this.isDarkMode ? 'dark' : 'light'} mode`
+      })
     },
 
     setDarkMode(isDark: boolean) {
@@ -90,7 +107,13 @@ export const useAppStore = defineStore('app', {
     setLanguage(lang: string) {
       this.language = lang
       localStorage.setItem('chapa-language', lang)
-      // In a real app, you'd update vue-i18n here
+      
+      // NEW: Show notification
+      NotificationManager.showNotification({
+        type: 'info',
+        title: 'Language Changed',
+        message: `App language set to ${lang}`
+      })
     },
 
     // Settings management
@@ -100,9 +123,16 @@ export const useAppStore = defineStore('app', {
     },
 
     toggleSetting(setting: keyof typeof this.settings) {
-      this.settings[setting] = !this.settings[setting]
-      this.saveSettings()
-    },
+  this.settings[setting] = !this.settings[setting]
+  this.saveSettings()
+  
+  // NEW: Show notification
+  NotificationManager.showNotification({
+    type: 'info',
+    title: 'Setting Updated',
+    message: `${String(setting)} ${this.settings[setting] ? 'enabled' : 'disabled'}` // ADD String() wrapper
+  })
+},
 
     async saveSettings() {
       try {
@@ -116,6 +146,14 @@ export const useAppStore = defineStore('app', {
     // Error management
     setError(error: string | null) {
       this.error = error
+      if (error) {
+        // NEW: Show error notification
+        NotificationManager.showNotification({
+          type: 'error',
+          title: 'Error',
+          message: error
+        })
+      }
     },
 
     clearError() {
